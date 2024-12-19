@@ -15,12 +15,12 @@ const { swaggerUi, swaggerSpec } = require('./swagger');
 
 dotenv.config();
 
-const redisClient = redis.createClient({
-  url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-  password: process.env.REDIS_PASSWORD,
-  legacyMode: true,
-});
-redisClient.connect().catch(console.error);
+// const redisClient = redis.createClient({
+//   url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+//   password: process.env.REDIS_PASSWORD,
+//   legacyMode: true,
+// });
+// redisClient.connect().catch(console.error);
 
 const tokenRouter = require('./routes/token');
 const pageRouter = require('./routes/page');
@@ -74,22 +74,22 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
-const sessionOption = {
-  resave: false,
-  saveUninitialized: false,
-  secret: process.env.COOKIE_SECRET,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    secure: false,
-  },
-  store: new RedisStore({ client: redisClient }),
-};
+// const sessionOption = {
+//   resave: false,
+//   saveUninitialized: false,
+//   secret: process.env.COOKIE_SECRET,
+//   cookie: {
+//     httpOnly: true,
+//     secure: process.env.NODE_ENV === 'production',
+//     secure: false,
+//   },
+//   store: new RedisStore({ client: redisClient }),
+// };
 if (process.env.NODE_ENV === 'production') {
   sessionOption.proxy = true;
   sessionOption.cookie.secure = true;
 }
-app.use(session(sessionOption));
+// app.use(session(sessionOption));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -122,6 +122,14 @@ app.use((err, req, res, next) => {
   });
 });
 
+
+app.listen(app.get('port'), () => {
+  console.log(app.get('port'), '번 포트에서 대기중');
+  console.log(app.get('port'), '번 포트에서 대기중');
+});
+
+
+
 // const corsOptions = {
 //   origin:'*',
 //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -149,9 +157,6 @@ app.use((err, req, res, next) => {
 // app.listen(app.get('port'), '0.0.0.0', () => {
 //   console.log(`http://localhost:${app.get('port')}에서 대기중`);
 // });
-
-module.exports = app;
-
 //로컬
 // app.listen(app.get('port'), () => {
 //   console.log(app.get('port'), '번 포트에서 대기중');
