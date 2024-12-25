@@ -6,12 +6,7 @@ class Comment extends Sequelize.Model {
       content: { // 댓글 내용
         type: Sequelize.STRING(500), // 500자 제한
         allowNull: false,
-      },
-      post_nick:{
-        type: Sequelize.STRING(15),
-        allowNull: false,
       }
-      
     }, {
       sequelize,
       timestamps: true, // 댓글의 생성/수정 시간

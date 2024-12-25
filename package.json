@@ -32,12 +32,16 @@
     "sanitize-html": "^2.13.1",
     "sequelize": "^6.37.5",
     "sequelize-cli": "^6.6.2",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
+    "uninstall": "^0.0.0",
+    "uuid": "^11.0.3",
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "swagger-ui-express": "^5.0.1"
   }
 }

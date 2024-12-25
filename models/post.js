@@ -3,12 +3,12 @@ const Sequelize = require('sequelize');
 class Post extends Sequelize.Model {
   static initiate(sequelize) {
     Post.init({
-      post_nick: {
-        type: Sequelize.STRING(15),
-        allowNull: false,
+      title: {
+        type: Sequelize.STRING(50),
+        allowNull: false
       },
       content: {
-        type: Sequelize.STRING(140),
+        type: Sequelize.STRING(200),
         allowNull: false,
       },
       img: {
@@ -21,7 +21,7 @@ class Post extends Sequelize.Model {
       underscored: false,
       modelName: 'Post',
       tableName: 'posts',
-      paranoid: false,
+      paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
     });
