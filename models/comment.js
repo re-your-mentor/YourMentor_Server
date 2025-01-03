@@ -6,7 +6,16 @@ class Comment extends Sequelize.Model {
       content: { // 댓글 내용
         type: Sequelize.STRING(500), // 500자 제한
         allowNull: false,
-      }
+      },
+      parentId: {
+        type: Sequelize.ENUM(null, 1),
+        allowNull: true, // 최상위 댓글은 `null` 값
+        references: {
+          model: Comment,
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
     }, {
       sequelize,
       timestamps: true, // 댓글의 생성/수정 시간
@@ -25,6 +34,17 @@ class Comment extends Sequelize.Model {
 
    // 일대다 관계 설정: 댓글(Comment)은 하나의 사용자(User)에 속할 수 있음
    db.Comment.belongsTo(db.User, { foreignKey: 'userId', targetKey: 'id' });
+
+   Comment.hasMany(Comment, {
+    as: 'Replies',
+    foreignKey: 'parentId',
+    onDelete: 'CASCADE',
+  });
+  
+  Comment.belongsTo(Comment, {
+    as: 'Parent',
+    foreignKey: 'parentId',
+  });
 
   }
 }

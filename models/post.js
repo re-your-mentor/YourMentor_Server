@@ -8,7 +8,7 @@ class Post extends Sequelize.Model {
         allowNull: false
       },
       content: {
-        type: Sequelize.STRING(200),
+        type: Sequelize.STRING(2000),
         allowNull: false,
       },
       img: {

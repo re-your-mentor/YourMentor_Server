@@ -7,12 +7,9 @@ const { isLoggedIn, verifyToken } = require('../middlewares');
 router.post('/', verifyToken, isLoggedIn, createComment);
 
 // 게시글에 대한 댓글 조회 (Read)
-router.get('/posts/:postId', verifyToken, getComment);
-
-// 댓글 수정 (Update)
-router.put('/fix/:commentId', verifyToken, isLoggedIn, updateComment);
+router.get('/post/:postId', verifyToken, getComment);
 
 // 댓글 삭제 (Delete)
-router.delete('/delet/:commentId', verifyToken, isLoggedIn, deleteComment);
+router.delete('/delete/:commentId', verifyToken, isLoggedIn, deleteComment);
 
 module.exports = router;

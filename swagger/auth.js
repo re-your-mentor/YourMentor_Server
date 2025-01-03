@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: Auth
- *   description: 인증 관련 API
+ *   description: 인증 API 모음.
  */
 
 /**
@@ -12,6 +12,7 @@
  *     summary: 회원가입
  *     description: 새 사용자를 등록하고 JWT 토큰을 반환합니다.
  *     tags: [Auth]
+ *     parameters:
  *     requestBody:
  *       required: true
  *       content:
@@ -22,6 +23,9 @@
  *               email:
  *                 type: string
  *                 example: user@example.com
+ *                 unique: true
+ *                 required: true
+ *                 maxLength: 60
  *               nick:
  *                 type: string
  *                 example: nickname
@@ -36,8 +40,6 @@
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
  *                 message:
  *                   type: string
  *                 user:
@@ -51,6 +53,7 @@
  *                       type: string
  *                 token:
  *                   type: string
+ *                   description: 비밀번호 암호화
  *       400:
  *         description: 이미 존재하는 사용자
  *       500:
@@ -85,8 +88,6 @@
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
  *                 message:
  *                   type: string
  *                 user:
@@ -121,8 +122,6 @@
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
  *                 message:
  *                   type: string
  */
@@ -137,18 +136,6 @@
  *     responses:
  *       302:
  *         description: 카카오 로그인 페이지로 리다이렉트
- */
-
-/**
- * @swagger
- * /테스트:
- *   get:
- *     summary: 테스트
- *     description: 테스트.
- *     tags: [Auth]
- *     responses:
- *       302:
- *         description: 성공 시 홈 페이지로 리다이렉트
  */
 
 /**

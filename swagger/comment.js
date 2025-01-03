@@ -7,7 +7,7 @@
 
 /**
  * @swagger
- * /comment:
+ * post/{postId}/comment:
  *   post:
  *     summary: 댓글 생성
  *     description: 게시글에 댓글을 추가합니다.
@@ -24,12 +24,15 @@
  *               postId:
  *                 type: integer
  *                 description: 게시글 ID
- *                 example: 1
+ *                 example: integer
+ *               parentId:
+ *                 type: integer
+ *                 description: null 일시 일반댓글. 다른 숫자일 시 대댓글 처리.
  *               content:
  *                 type: string
  *                 description: 댓글 내용
  *                 example: "좋은 글입니다!"
- *               post_nick:
+ *               user_nick:
  *                 type: string
  *                 description: 게시글 작성자의 닉네임
  *                 example: "authorNick"
@@ -44,13 +47,16 @@
  *                 id:
  *                   type: integer
  *                   description: 댓글 ID
- *                 content:
- *                   type: string
  *                 postId:
  *                   type: integer
  *                 userId:
  *                   type: integer
- *                 post_nick:
+ *                 parentId:
+ *                   type: integer
+ *                   required: false
+ *                 content:
+ *                   type: string
+ *                 user_nick:
  *                   type: string
  *       404:
  *         description: 게시글을 찾을 수 없음
@@ -60,10 +66,10 @@
 
 /**
  * @swagger
- * /comment/posts/{postId}:
+ * post/{postId}/comment:
  *   get:
  *     summary: 댓글 조회
- *     description: 특정 게시글에 대한 모든 댓글을 조회합니다.
+ *     description: 특정 게시글에 대한 모든 댓글을 조회.
  *     tags: [Comment]
  *     security:
  *       - BearerAuth: []
@@ -84,11 +90,15 @@
  *               items:
  *                 type: object
  *                 properties:
+ *                   commentId:
+ *                     type: string
+ *                   parentId:
+ *                     type: integer
+ *                     description: null 일시 일반댓글. 다른 숫자일 시 대댓글 처리.
  *                   content:
  *                     type: string
- *                   nick:
+ *                   user_nick:
  *                     type: string
- *                     nullable: true
  *       404:
  *         description: 게시글을 찾을 수 없음
  *       500:
@@ -97,63 +107,10 @@
 
 /**
  * @swagger
- * /comment/fix/{commentId}:
- *   put:
- *     summary: 댓글 수정
- *     description: 자신의 댓글 내용을 수정합니다.
- *     tags: [Comment]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: commentId
- *         required: true
- *         schema:
- *           type: integer
- *         description: 댓글 ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               content:
- *                 type: string
- *                 description: 수정할 댓글 내용
- *                 example: "수정된 댓글입니다."
- *               post_nick:
- *                 type: string
- *                 description: 게시글 작성자의 닉네임
- *                 example: "updatedNick"
- *     responses:
- *       200:
- *         description: 댓글 수정 성공
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                 content:
- *                   type: string
- *                 post_nick:
- *                   type: string
- *       403:
- *         description: 권한 없음 (작성자가 아님)
- *       404:
- *         description: 댓글을 찾을 수 없음
- *       500:
- *         description: 서버 에러
- */
-
-/**
- * @swagger
- * /comment/delet/{commentId}:
+ * post/{postId}/comment/del/{commentId}:
  *   delete:
  *     summary: 댓글 삭제
- *     description: 자신의 댓글을 삭제합니다.
+ *     description: 자신의 댓글을 삭제합니다. 일반 댓글(부모 댓글)이 삭제될 시(parentId == null 인것이 부모) 대댓글(자식 댓글) 까지 같이 삭제함.
  *     tags: [Comment]
  *     security:
  *       - BearerAuth: []

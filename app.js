@@ -10,10 +10,9 @@ const passport = require('passport');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const cors = require('cors');
-const redis = require('redis');
+//const redis = require('redis');
 //const RedisStore = require('connect-redis').default;
 const { swaggerUi, specs } = require("./swagger/swagger");
-
 const handleSocket = require('./routes/socket');
 
 
@@ -27,15 +26,14 @@ dotenv.config();
 // redisClient.connect().catch(console.error);
 
 const tokenRouter = require('./routes/token');
-const pageRouter = require('./routes/page');
+const indexRouter = require('./routes');
 const authRouter = require('./routes/auth');
 const postRouter = require('./routes/post');
 const userRouter = require('./routes/user');
 const commentRouter = require('./routes/comment');
 const { sequelize } = require('./models');
 const passportConfig = require('./passport');
-//const logger = require('./logger'); // 지금은 안씀.
-//const api = require('./routes');
+const logger = require('./logger');
 
 
 const sessionOption = {
@@ -57,6 +55,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 app.set('port', process.env.PORT || 8000);
+app.set('host', process.env.HOST);
 app.set('view engine', 'html');
 nunjucks.configure('views', {
   express: app,
@@ -86,7 +85,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev'));
 }
 
-//app.use(cors());
+app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/img', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
@@ -103,11 +102,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-app.use('/', pageRouter);
+app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/post', postRouter);
 app.use('/user', userRouter);
-app.use('/token', tokenRouter);
+//app.use('/token', tokenRouter);
 app.use('/comment', commentRouter);
 
 /**
@@ -118,14 +117,13 @@ app.use('/comment', commentRouter);
 
 /**
  * @path {GET} http://localhost:8000/
- * @description 뷁
+ * @description 기본 경로 (미배포)
  */
 
 // 404 에러 핸들링
 app.use((req, res, next) => {
   const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
   error.status = 404;
-  logger.info('hello');
   logger.error(error.message);
   next(error);
 });
@@ -136,14 +134,21 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     success: false,
     message: err.message,
-    stack: process.env.NODE_ENV !== 'production' ? err.stack : '🔒 스택 정보는 보안 상 개인에게 재공되지 않습니다.',
+    //stack: process.env.NODE_ENV !== 'production' ? err.stack : '🔒 스택 정보는 보안 상 개인에게 재공되지 않습니다.',
   });
 });
 
-console.log(JSON.stringify(specs, null, 2));
+//swagger 테스트
+//console.log(JSON.stringify(specs, null, 2));
+
 const server = app.listen(app.get('port'), () => {
   console.log(`HTTPS Server running on port ${app.get('port')}`);
 });
+
+// 미배포 환경에서 내부망 통신에 사용
+// const server = app.listen(app.get('port'),app.get('host'), () => {
+//   console.log(`HTTPS Server running on port ${app.get('port')}`);
+// });
 
 const io = new Server(server, {
   cors: {

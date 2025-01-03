@@ -4,17 +4,21 @@ class User extends Sequelize.Model {
   static initiate(sequelize) {
     User.init({
       email: {
-        type: Sequelize.STRING(40),
+        type: Sequelize.STRING(60),
         allowNull: true,
         unique: true,
       },
       nick: {
-        type: Sequelize.STRING(15),
+        type: Sequelize.STRING(30),
         allowNull: false,
       },
       password: {
-        type: Sequelize.STRING(100),
+        type: Sequelize.STRING(200),
         allowNull: true,
+      },
+      profile_pic:{
+        type: Sequelize.STRING,
+        defaultValue: "default_profile_pic.jpg"
       },
       provider: {
         type: Sequelize.ENUM('local', 'kakao'),

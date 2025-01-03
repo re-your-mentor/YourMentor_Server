@@ -35,10 +35,10 @@ router.post('/img', verifyToken, isLoggedIn, upload.single('img'), afterUploadIm
 const upload2 = multer();
 router.post('/', verifyToken, isLoggedIn, upload2.none(), uploadPost);
 
-// PATCH /post/:id/fix - 게시글 수정
+// PUT /post/:id
 router.patch('/:id', verifyToken, isLoggedIn, updatePost);
 
-// DELETE /post/:id - 게시글 삭제
+// DELETE /post/:id
 router.delete('/:id', verifyToken, isLoggedIn, deletePost);
 
 module.exports = router;

@@ -46,7 +46,7 @@ exports.verifyToken = (req, res, next) => {
       code: 500,
       message: '서버 에러',
       error: error.message,  // 오류 메시지
-      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined // 프로덕션 환경에서는 스택 트레이스를 숨김
+      //stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined // 프로덕션 환경에서는 스택 트레이스를 숨김
     });
   }
 };

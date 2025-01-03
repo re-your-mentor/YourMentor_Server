@@ -2,7 +2,7 @@ const { Comment, Post, User } = require('../models');
 
 // 댓글 생성 (Create)
 exports.createComment = async (req, res) => {
-  const { postId, content, post_nick } = req.body;
+  const { postId, content, user_nick, parentId } = req.body;
   const userId = req.user.id; // 로그인한 사용자의 id (JWT 토큰에서 가져오기)
 
   try {
@@ -13,12 +13,13 @@ exports.createComment = async (req, res) => {
 
     const newComment = await Comment.create({
       content,
-      post_nick,
+      user_nick,
+      parentId,
       postId,
       userId,
     });
-
     res.status(201).json(newComment);
+  
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error creating comment' });
@@ -52,35 +53,6 @@ exports.getComment = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching comments' });
-  }
-};
-
-
-// 댓글 수정 (Update)
-exports.updateComment = async (req, res) => {
-  const { commentId } = req.params;
-  const { content, post_nick } = req.body;
-
-  try {
-    const comment = await Comment.findByPk(commentId);
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
-    }
-
-    // 댓글 작성자만 수정 가능
-    if (comment.userId !== req.user.id) {
-      return res.status(403).json({ message: 'Forbidden: You can only edit your own comment' });
-    }
-
-    // `content`와 `post_nick`을 수정
-    comment.content = content;
-    comment.post_nick = post_nick;
-    await comment.save();
-
-    res.status(200).json(comment);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error updating comment' });
   }
 };
 
