@@ -45,6 +45,8 @@
  *                 user:
  *                   type: object
  *                   properties:
+ *                     success: 
+ *                       type: boolean
  *                     id:
  *                       type: integer
  *                     email:

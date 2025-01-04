@@ -25,7 +25,6 @@ dotenv.config();
 // });
 // redisClient.connect().catch(console.error);
 
-const tokenRouter = require('./routes/token');
 const indexRouter = require('./routes');
 const authRouter = require('./routes/auth');
 const postRouter = require('./routes/post');
@@ -85,7 +84,6 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev'));
 }
 
-app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/img', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
@@ -106,7 +104,6 @@ app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/post', postRouter);
 app.use('/user', userRouter);
-//app.use('/token', tokenRouter);
 app.use('/comment', commentRouter);
 
 /**
@@ -142,12 +139,12 @@ app.use((err, req, res, next) => {
 //console.log(JSON.stringify(specs, null, 2));
 
 const server = app.listen(app.get('port'), () => {
-  console.log(`HTTPS Server running on port ${app.get('port')}`);
+  console.log(`Server running on port ${app.get('port')}`);
 });
 
 // 미배포 환경에서 내부망 통신에 사용
 // const server = app.listen(app.get('port'),app.get('host'), () => {
-//   console.log(`HTTPS Server running on port ${app.get('port')}`);
+//   console.log(`Server running on port ${app.get('port')}`);
 // });
 
 const io = new Server(server, {

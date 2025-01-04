@@ -39,14 +39,24 @@ exports.getComment = async (req, res) => {
     const comments = await Comment.findAll({
       where: { postId },
       include: [
-        { model: User, attributes: ['nick'] }, // 댓글 작성자의 닉네임
+        { 
+          model: User, 
+          attributes: ['nick']  // 댓글을 작성한 유저의 닉네임만 가져오기
+        },
+        { 
+          model: Comment, 
+          as: "Replies", // 대댓글을 포함시키기 위해 'Replies' alias 사용
+          attributes: ['content', 'parentId'] // 대댓글의 content와 postId를 가져오기
+        }
       ],
     });
 
     // 모든 댓글을 리스트 형식으로 변환
     const commentList = comments.map(comment => ({
       content: comment.content,
+      // 유저 삭제 시 대처해야 함.(미작성)
       nick: comment.User ? comment.User.nick : null,
+      parentId: comment.Comment
     }));
 
     res.status(200).json(commentList);

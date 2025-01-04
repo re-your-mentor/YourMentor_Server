@@ -80,10 +80,6 @@ exports.getUserInfo = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // 팔로워와 팔로우 수 계산
-    const followerCount = user.Followers.length;
-    const followingCount = user.Followings.length;
-
     // 응답 데이터 포맷
     const responseData = {
       id: user.id,
@@ -94,52 +90,11 @@ exports.getUserInfo = async (req, res) => {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       posts: user.Posts, // 유저가 작성한 게시글
-      followerCount, // 팔로워 수
-      followingCount, // 팔로우 수
     };
 
     res.status(200).json(responseData); // 데이터 반환
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching user information' });
-  }
-};
-
-// 전체 유저 조회 API
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.findAll({
-      attributes: { exclude: ['password'] }, // 비밀번호 제외
-    });
-
-    res.status(200).json(users);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching all users' });
-  }
-};
-
-exports.unfollow = async (req, res, next) => {
-  try {
-    const user = await User.findOne({ where: { id: req.user.id } });
-
-    if (user) {
-      // 팔로우 취소할 유저 ID
-      const targetUserId = parseInt(req.params.id, 10);
-
-      // 팔로우 관계가 존재하면 제거
-      const result = await user.removeFollowing(targetUserId);
-      if (result) {
-        res.status(200).json({ success: true, message: 'Unfollow successful' });
-      } else {
-        res.status(404).json({ success: false, message: 'Follow relationship not found' });
-      }
-    } else {
-      res.status(404).json({ success: false, message: 'User not found' });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message });
-    next(error);
   }
 };

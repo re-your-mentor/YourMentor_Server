@@ -39,6 +39,12 @@
  *                   maxSize: 5MB
  *       500:
  *         description: 서버 에러
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
  */
 
 /**
@@ -57,11 +63,11 @@
  *           schema:
  *             type: object
  *             properties:
- *               user_nick:
+ *               title:
  *                 type: string
  *                 description: 게시글 작성자의 닉네임
- *                 example: "닉네임"
- *                 maxLength: 30
+ *                 example: "제목"
+ *                 maxLength: 50
  *               content:
  *                 type: string
  *                 description: 게시글 내용
@@ -70,7 +76,7 @@
  *               url:
  *                 type: string
  *                 description: 업로드된 이미지 URL
- *                 example: "/img/example12345.png"
+ *                 example: "example12345.png"
  *                 maxSize: 5MB
  *     responses:
  *       200:
@@ -100,6 +106,13 @@
  *                       example: 1
  *       500:
  *         description: 서버 에러
+ * 
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
  */
 
 /**
@@ -192,4 +205,10 @@
  *         description: 게시글을 찾을 수 없음
  *       500:
  *         description: 서버 에러
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
  */

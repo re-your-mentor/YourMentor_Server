@@ -15,13 +15,14 @@ exports.join = async (req, res) => {
       email,
       nick,
       password: hash,
+      pic,
     });
     
     // JWT 발급
     const token = jwt.sign(
       { id: newUser.id, nick: newUser.nick },
       process.env.JWT_SECRET,
-      { expiresIn: '1h', issuer: 'your-app-name' }
+      { expiresIn: '30d', issuer: 'ur_mento' }
     );
     
     return res.status(201).json({

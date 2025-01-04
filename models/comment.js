@@ -8,7 +8,7 @@ class Comment extends Sequelize.Model {
         allowNull: false,
       },
       parentId: {
-        type: Sequelize.ENUM(null, 1),
+        type: Sequelize.INTEGER,
         allowNull: true, // 최상위 댓글은 `null` 값
         references: {
           model: Comment,

@@ -11,21 +11,20 @@ exports.renderMain = async (req, res, next) => {
       order: [['createdAt', 'DESC']], 
     });
 
-    const twits = posts.map(({ post_nick, id, content, createdAt, User: { id: userId, nick } }) => ({
-      post_nick,
-      id,
+    const twits = posts.map(({ user_nick, post_id, title, content, createdAt, User: { id: userId } }) => ({
+      user_nick,
+      id: post_id,
+      title,
       content,
       createdAt,
       user: {
-        id: userId,
-        nick,
+        id: userId
       },
     }));
 
     // 성공 응답
     res.status(200).json({
       success: true,
-      title: 'NodeBird',
       twits,
     });
   } catch (err) {
@@ -51,6 +50,7 @@ exports.renderHashtag = async (req, res, next) => {
     // 검색된 게시물 데이터를 JSON 형식으로 반환
     const twits = posts.map(post => ({
       id: post.id,
+      title: post.title,
       content: post.content,
       createdAt: post.createdAt,
       user: {
@@ -70,6 +70,7 @@ exports.renderHashtag = async (req, res, next) => {
   }
 };
 
+// post 세부 조회
 exports.getPostById = async (req, res, next) => {
   const { postId } = req.params;
 

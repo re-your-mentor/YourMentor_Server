@@ -1,4 +1,4 @@
-const { Post, Hashtag } = require('../models');
+const { Post, Hashtag, User } = require('../models');
 
 // 이미지 업로드 후 URL을 반환하는 컨트롤러 함수
 exports.afterUploadImage = (req, res) => {
@@ -6,7 +6,7 @@ exports.afterUploadImage = (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: '파일 업로드에 실패했습니다.' });
     }
-    res.json({ success: true, url: `/img/${req.file.filename}` });
+    res.json({ success: true, img: `${req.file.filename}` });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: '이미지 업로드 처리 중 오류가 발생했습니다.' });
@@ -16,15 +16,26 @@ exports.afterUploadImage = (req, res) => {
 // 게시글 업로드
 exports.uploadPost = async (req, res) => {
   try {
-    if (!req.body.content || !req.body.post_nick) {
-      return res.status(400).json({ success: false, message: '게시글 내용과 닉네임은 필수입니다.' });
+    if (!req.body.content || !req.body.title) {
+      if(!req.body.content)
+        return res.status(400).json({ success: false, message: '게시글 본문은 필수사항 입니다.' });
+      else if(!req.body.title)
+        return res.status(400).json({success:false, message: '게시글 제목은 필수사항 입니다.'});
+      else
+        return res.status(400).json({success:false, message: '게시글 제목과 본문은 필수사항 입니다.'});
     }
+    
+    const userId = req.user.id;
+    const user = await User.findByPk(userId);
+    const userNick = user.nick;
 
+    
     const post = await Post.create({
-      post_nick: req.body.post_nick,
+      user_nick: userNick,
+      title: req.body.title,
       content: req.body.content,
-      img: req.body.url || null,
-      UserId: req.user?.id, // req.user가 없을 경우 null 처리
+      img: req.body.img || null,
+      UserId: userId,
     });
 
     const hashtags = req.body.content.match(/#[^\s#]*/g);
@@ -81,13 +92,14 @@ exports.updatePost = async (req, res) => {
     }
 
     await post.update({
+      title: req.body.title || post.title,
       content: req.body.content || post.content, // 기존 값 유지
-      img: req.body.url || post.img,
+      img: req.body.url ? req.body.url : (post.img ? post.img : null),
     });
 
     res.json({ success: true, post });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: '게시글 수정 중 오류가 발생했습니다.' });
+    res.status(500).json({ success: false, message: '게시글 수정 중 오류 발생' });
   }
 };

@@ -1,14 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-// 로그인 확인 미들웨어를 JWT 기반으로 수정
-exports.isLoggedIn = (req, res, next) => {
-  if (req.user) {
-    next();
-  } else {
-    res.status(403).send('로그인 필요');
-  }
-};
-
 // JWT 토큰을 검증하는 미들웨어
 exports.verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1]; // 'Bearer <token>'에서 토큰 부분만 추출
