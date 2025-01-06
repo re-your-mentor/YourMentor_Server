@@ -45,9 +45,10 @@ exports.getUserInfo = async (req, res) => {
 
   try {
     console.log('getUserInfo');
-    // 유저 정보, 작성한 게시글, 팔로워/팔로우 수 조회
-    const user = await User.findById(userId, {
-      attributes: { exclude: ['password'] } // 비밀번호 제외
+    // 유저 정보, 작성한 게시글 조회
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ['password'] }, // 비밀번호 제외
+      include: [{ model: Post, as: 'Posts' }] // Posts 포함
     });
 
     if (!user) {
@@ -56,19 +57,15 @@ exports.getUserInfo = async (req, res) => {
 
     // 응답 데이터 포맷
     const responseData = {
-      id: user.id,
-      email: user.email,
+      profile_pic: user.profile_pic,
       nick: user.nick,
-      provider: user.provider,
-      snsId: user.snsId,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      posts: user.Posts, // 유저가 작성한 게시글
+      posts: user.Posts || [], // Posts가 없을 경우 빈 배열 반환
     };
 
     res.status(200).json(responseData); // 데이터 반환
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error fetching user information' });
+    res.status(500).json({ message: 'Error get user information' });
   }
 };

@@ -31,11 +31,10 @@ exports.uploadPost = async (req, res) => {
 
     
     const post = await Post.create({
-      user_nick: userNick,
       title: req.body.title,
       content: req.body.content,
       img: req.body.img || null,
-      UserId: userId,
+      userId: req.user.id, // 로그인한 사용자의 ID
     });
 
     const hashtags = req.body.content.match(/#[^\s#]*/g);

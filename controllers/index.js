@@ -1,36 +1,35 @@
 const { User, Post, Hashtag, Comment } = require('../models'); // User, Post, Hashtag 모델을 가져옴
 
-// 모든 게시물을 가져옴
-exports.renderMain = async (req, res, next) => {
+exports.renderMain = async (req, res) => {
   try {
+    // 모든 게시글 조회 (작성자 정보 포함)
     const posts = await Post.findAll({
-      include: {
-        model: User,
-        attributes: ['id', 'nick'],
-      },
-      order: [['createdAt', 'DESC']], 
+      include: [{ model: User, attributes: ['id', 'nick'] }]
     });
 
-    const twits = posts.map(
-    ({ user_nick, post_id, title, content, createdAt, User: { id: userId } }) => ({
-      user_nick,
-      id: post_id,
-      title,
-      content,
-      createdAt,
-      user: {
-        id: userId
-      },
-    }));
+    // posts가 null 또는 undefined인 경우 빈 배열로 초기화
+    const safePosts = posts || [];
 
-    // 성공 응답
-    res.status(200).json({
-      success: true,
-      twits,
-    });
-  } catch (err) {
-    console.error('Error fetching posts:', err.message);
-    next(err); 
+    // 게시글 데이터 포맷
+    const postData = safePosts.map(post => {
+      if (!post || !post.User) return null; // post 또는 post.User가 null이면 null 반환
+      return {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        img: post.img,
+        createdAt: post.createdAt,
+        user: {
+          id: post.User.id,
+          nick: post.User.nick,
+        },
+      };
+    }).filter(post => post !== null); // null인 요소 제거
+
+    res.status(200).json(postData); // 데이터 반환
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Error fetching posts' });
   }
 };
 
@@ -62,7 +61,7 @@ exports.renderHashtag = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      title: `${query} | NodeBird`,
+      title: `${query} | Ur_mento`,
       twits: twits,
     });
   } catch (error) {
@@ -119,7 +118,7 @@ exports.getPostWithComments = async (req, res, next) => {
       include: [
         {
           model: User, 
-          attributes: ['id', 'nick'],
+          attributes: ['id', 'nick', 'profile_pic'],
         },
         {
           model: Comment,
@@ -144,7 +143,7 @@ exports.getPostWithComments = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       post: {
-        post_nick: post.post_nick,
+        user_nick: post.User.nick,
         id: post.id,
         content: post.content,
         img: post.img,
@@ -153,6 +152,7 @@ exports.getPostWithComments = async (req, res, next) => {
         user: {
           id: post.User.id,
           nick: post.User.nick,
+          img: post.User.profile_pic
         },
         comments: post.Comments.map(comment => ({
           comment_nick: comment.post_nick,

@@ -15,6 +15,10 @@ class Post extends Sequelize.Model {
         type: Sequelize.STRING(200),
         allowNull: true,
       },
+      userId: { // userId 컬럼 추가
+        type: Sequelize.INTEGER,
+        allowNull: false, // null 허용하지 않음
+      },
     }, {
       sequelize,
       timestamps: true,
@@ -28,8 +32,8 @@ class Post extends Sequelize.Model {
   }
   
   static associate(db) {
-    db.Post.belongsTo(db.User);
-    db.Post.belongsToMany(db.Hashtag, {through: 'PostHashtag'});
+    db.Post.belongsTo(db.User, { foreignKey: 'userId' }); // User와의 관계 설정
+    db.Post.belongsToMany(db.Hashtag, { through: 'PostHashtag' });
     db.Post.hasMany(db.Comment, { foreignKey: 'postId', sourceKey: 'id' });
   }
 }

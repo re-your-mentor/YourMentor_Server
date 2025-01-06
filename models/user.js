@@ -4,7 +4,7 @@ class User extends Sequelize.Model {
   static initiate(sequelize) {
     User.init({
       email: {
-        type: Sequelize.STRING(60),
+        type: Sequelize.STRING(100),
         allowNull: true,
         unique: true,
       },
@@ -16,17 +16,17 @@ class User extends Sequelize.Model {
         type: Sequelize.STRING(200),
         allowNull: true,
       },
-      profile_pic:{
-        type: Sequelize.STRING,
+      profile_pic: {
+        type: Sequelize.STRING(500),
         defaultValue: "default_profile_pic.jpg"
       },
       provider: {
-        type: Sequelize.ENUM('local', 'kakao'),
+        type: Sequelize.ENUM('local', 'kakao', 'google'),
         allowNull: false,
         defaultValue: 'local',
       },
       snsId: {
-        type: Sequelize.STRING(30),
+        type: Sequelize.STRING(50),
         allowNull: true,
       },
     }, {
@@ -36,15 +36,16 @@ class User extends Sequelize.Model {
       modelName: 'User',
       tableName: 'users',
       paranoid: true,
-      charset: 'utf8',
-      collate: 'utf8_general_ci',
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_general_ci',
     });
   }
 
   static associate(db) {
-    db.User.hasMany(db.Comment, { foreignKey: 'userId' }); // 댓글은 유저와 1:N 관계
-    db.User.hasMany(db.Message, { foreignKey: 'userId' }); // 유저는 여러 메시지를 보냄
-    db.User.hasMany(db.Room, { foreignKey: 'userId' }); // 유저는 여러 방을 생성할 수 있음
+    db.User.hasMany(db.Comment, { foreignKey: 'userId' });
+    db.User.hasMany(db.Message, { foreignKey: 'userId' });
+    db.User.hasMany(db.Room, { foreignKey: 'userId' });
+    db.User.hasMany(db.Post, { foreignKey: 'userId' }); // Post와의 관계 추가
   }
 };
 

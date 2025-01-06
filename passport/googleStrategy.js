@@ -7,6 +7,7 @@ module.exports = () => {
     clientID: process.env.GOOGLE_CLIENT_ID, 
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: '/auth/google/callback',
+    scope: ['profile', 'email'],  // 필요한 스코프를 배열로 추가
   }, async (accessToken, refreshToken, profile, done) => {
     console.log('kakao profile', profile);  
     try {
@@ -18,12 +19,13 @@ module.exports = () => {
         done(null, exUser); 
       } else {
         const newUser = await User.create({
-          email: profile._json?.kakao_account?.email,  // 카카오 계정의 이메일을 가져옵니다. (없을 수 있으므로 optional chaining 사용)
-          nick: profile.displayName,  // 카카오 프로필에서 표시된 이름을 사용자의 닉네임으로 설정
-          snsId: profile.id,  // 카카오에서 제공한 고유 ID를 snsId로 저장
-          provider: 'google', 
-          profile_pic: profile._json.picture || "default_profile_pic.jpg",
+          email: profile.emails[0].value,  // Google 프로필에서 이메일 추출
+          nick: profile.displayName,       // Google 프로필에서 닉네임 추출
+          snsId: profile.id,               // Google에서 제공한 고유 ID
+          provider: 'google',
+          profile_pic: profile.photos[0].value || "default_profile_pic.jpg",  // 프로필 사진
         });
+
 
         done(null, newUser);  // 새로운 사용자 정보를 세션에 저장
 
