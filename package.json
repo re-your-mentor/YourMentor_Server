@@ -25,6 +25,7 @@
     "mysql2": "^3.11.4",
     "nunjucks": "^3.2.4",
     "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
     "passport-kakao": "^1.0.1",
     "passport-local": "^1.0.0",
     "redis": "^4.7.0",

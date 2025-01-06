@@ -1,6 +1,6 @@
 const express = require('express');
 const {
-  renderHashtag, renderMain, getPostWithComments
+  renderHashtag, renderMain
 } = require('../controllers');
 
 const router = express.Router();

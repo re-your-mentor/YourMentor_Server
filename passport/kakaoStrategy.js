@@ -7,7 +7,7 @@ const User = require('../models/user');  // 사용자 모델을 불러옵니다.
 module.exports = () => {
   // passport.use는 카카오 전략을 사용하여 카카오 로그인을 처리하도록 설정합니다.
   passport.use(new KakaoStrategy({
-    clientID: process.env.KAKAO_ID,  // 카카오 개발자 사이트에서 발급받은 애플리케이션 ID (KAKAO_ID 환경변수)
+    clientID: process.env.KAKAO_CLIENT_ID,  // 카카오 개발자 사이트에서 발급받은 애플리케이션 ID (KAKAO_ID 환경변수)
     callbackURL: '/auth/kakao/callback',  // 카카오 인증 후 리다이렉트될 URL
   }, async (accessToken, refreshToken, profile, done) => {
     // 카카오 로그인 인증 후 실행될 콜백 함수입니다.
@@ -26,11 +26,14 @@ module.exports = () => {
         // 기존 사용자가 없으면 새로운 사용자를 생성
         const newUser = await User.create({
           email: profile._json?.kakao_account?.email,  // 카카오 계정의 이메일을 가져옵니다. (없을 수 있으므로 optional chaining 사용)
+          password: null,
           nick: profile.displayName,  // 카카오 프로필에서 표시된 이름을 사용자의 닉네임으로 설정
           snsId: profile.id,  // 카카오에서 제공한 고유 ID를 snsId로 저장
           provider: 'kakao',  // 카카오 로그인임을 나타내기 위해 provider 값을 'kakao'로 설정
+          profile_pic: profile._json?.kakao_account?.profile?.profile_image_url || "default_profile_pic.jpg",
         });
 
+        console.log(newUser);
         done(null, newUser);  // 새로운 사용자 정보를 세션에 저장
       }
     } catch (error) {

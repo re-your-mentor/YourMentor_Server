@@ -2,33 +2,22 @@ const User = require('../models/user');
 const Post = require('../models/post');
 const bcrypt = require('bcrypt');
 
-exports.follow = async (req, res, next) => {
-  try {
-    const user = await User.findOne({ where: { id: req.user.id } });
-    
-    if (user) {
-      await user.addFollowing(parseInt(req.params.id, 10));
-      res.status(200).json({ success: true, message: 'success' });
-    } else {
-      res.status(404).json({ success: false, message: 'User not found' });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message });
-    next(error);
-  }
-};
-
 // 유저 정보 수정 (닉네임, 비밀번호 변경 가능)
 exports.updateUser = async (req, res) => {
   const { userId } = req.params; // URL에서 유저 ID 추출
-  const { nick, password } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
+  const { nick, password, passwordAgain } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
 
   try {
     const user = await User.findByPk(userId); // 유저 조회
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    const saltRounds = process.env.SALT_ROUND;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    user.password = hashedPassword;
+
+    if( (!nick == user.nick) || password )
 
     // 닉네임이 있을 경우 닉네임 수정
     if (nick) {
@@ -37,7 +26,7 @@ exports.updateUser = async (req, res) => {
 
     // 비밀번호가 있을 경우 비밀번호 해싱 후 수정
     if (password) {
-      const saltRounds = 12; // 해싱 복잡도
+      const saltRounds = process.env.SALT_ROUND;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       user.password = hashedPassword;
     }
@@ -55,25 +44,10 @@ exports.getUserInfo = async (req, res) => {
   const { userId } = req.params;
 
   try {
+    console.log('getUserInfo');
     // 유저 정보, 작성한 게시글, 팔로워/팔로우 수 조회
-    const user = await User.findByPk(userId, {
-      attributes: { exclude: ['password'] }, // 비밀번호 제외
-      include: [
-        {
-          model: Post,
-          attributes: ['post_nick', 'id', 'content', 'img', 'createdAt'], // 게시글 정보
-        },
-        {
-          model: User,
-          as: 'Followers', // 팔로워
-          attributes: ['id'], // 팔로워 수만 확인하면 되므로 id만 가져옴
-        },
-        {
-          model: User,
-          as: 'Followings', // 팔로우
-          attributes: ['id'], // 팔로우 수만 확인하면 되므로 id만 가져옴
-        },
-      ],
+    const user = await User.findById(userId, {
+      attributes: { exclude: ['password'] } // 비밀번호 제외
     });
 
     if (!user) {

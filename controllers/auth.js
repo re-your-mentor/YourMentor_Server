@@ -15,7 +15,6 @@ exports.join = async (req, res) => {
       email,
       nick,
       password: hash,
-      pic,
     });
     
     // JWT 발급

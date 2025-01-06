@@ -2,6 +2,7 @@
 const passport = require('passport');
 const local = require('./localStrategy');  // 로컬 로그인 전략
 const kakao = require('./kakaoStrategy');  // 카카오 로그인 전략
+const google = require('./googleStrategy'); // 구글 로그인 전략
 const User = require('../models/user');  // 사용자 모델 불러오기
 
 module.exports = () => {
@@ -16,15 +17,7 @@ module.exports = () => {
     console.log('deserialize');  // deserialize 호출됨을 확인하는 로그
     User.findOne({
       where: { id },  // 세션에 저장된 사용자 ID로 사용자를 찾음
-      include: [{ // 사용자와 관련된 '팔로워'와 '팔로잉' 정보도 함께 불러옵니다.
-        model: User,  // 팔로워를 찾기 위해 User 모델을 참조
-        attributes: ['id', 'nick'],  // 팔로워의 ID와 닉네임만 불러옴
-        as: 'Followers',  // 팔로워를 'Followers'라는 별칭으로 설정
-      }, {
-        model: User,  // 팔로잉을 찾기 위해 User 모델을 참조
-        attributes: ['id', 'nick'],  // 팔로잉의 ID와 닉네임만 불러옴
-        as: 'Followings',  // 팔로잉을 'Followings'라는 별칭으로 설정
-      }],
+      attributes: ['id', 'nick', 'profile_pic'],  // 필요한 사용자 정보만 불러옴
     })
       .then(user => {
         console.log('user', user);  // 불러온 사용자 정보를 로그로 출력
@@ -36,4 +29,5 @@ module.exports = () => {
   // 로컬 로그인 전략과 카카오 로그인 전략을 불러와서 패스포트에 설정
   local();  // 로컬 전략을 사용한 로그인 설정
   kakao();  // 카카오 전략을 사용한 로그인 설정
+  google(); // 구글 전략을 사용한 로그인 설정
 };

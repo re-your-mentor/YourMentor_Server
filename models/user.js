@@ -42,7 +42,9 @@ class User extends Sequelize.Model {
   }
 
   static associate(db) {
-    db.User.hasMany(db.Comment, { foreignKey: 'userId' });
+    db.User.hasMany(db.Comment, { foreignKey: 'userId' }); // 댓글은 유저와 1:N 관계
+    db.User.hasMany(db.Message, { foreignKey: 'userId' }); // 유저는 여러 메시지를 보냄
+    db.User.hasMany(db.Room, { foreignKey: 'userId' }); // 유저는 여러 방을 생성할 수 있음
   }
 };
 

@@ -2,7 +2,6 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const path = require('path');
-const { Server } = require('socket.io');
 const session = require('express-session');
 const nunjucks = require('nunjucks');
 const dotenv = require('dotenv');
@@ -13,8 +12,6 @@ const cors = require('cors');
 //const redis = require('redis');
 //const RedisStore = require('connect-redis').default;
 const { swaggerUi, specs } = require("./swagger/swagger");
-const handleSocket = require('./routes/socket');
-
 
 dotenv.config();
 
@@ -33,6 +30,7 @@ const commentRouter = require('./routes/comment');
 const { sequelize } = require('./models');
 const passportConfig = require('./passport');
 const logger = require('./logger');
+const chatRouter = require('./routes/socket');
 
 
 const sessionOption = {
@@ -49,7 +47,7 @@ const sessionOption = {
 const app = express();
 passportConfig();
 
-app.use(cors({
+const io = app.use(cors({
   origin: '*', // 모든 도메인 허용
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
@@ -105,6 +103,7 @@ app.use('/auth', authRouter);
 app.use('/post', postRouter);
 app.use('/user', userRouter);
 app.use('/comment', commentRouter);
+app.use('/chat', chatRouter);
 
 /**
  * 파라미터 변수 뜻
@@ -146,12 +145,3 @@ const server = app.listen(app.get('port'), () => {
 // const server = app.listen(app.get('port'),app.get('host'), () => {
 //   console.log(`Server running on port ${app.get('port')}`);
 // });
-
-const io = new Server(server, {
-  cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-  }
-});
-
-handleSocket(io);

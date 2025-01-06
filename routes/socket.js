@@ -1,31 +1,20 @@
-const { v4: uuidv4 } = require('uuid');
-
-const matchQueue = [];
-const users = new Map();
-const rooms = new Map();
 const express = require('express');
+const { verifyToken } = require('../middlewares');
+const {} = require('../controllers/user');
+const handleSocket = require('../controllers/socket');
+const { Server } = require('socket.io');
+const io = require('../app');
+
 const router = express.Router();
 
-const handleSocket = (io) => {
-    io.on('connection', function (socket) {
-        console.log(socket.id, ' connected...');
-        
-        // broadcasting a entering message to everyone who is in the chatroom
-        io.emit('msg', `${socket.id} has entered the chatroom.`);
-      
-        // message receives
-        socket.on('msg', function (data) {
-            console.log(socket.id,': ', data);
-            // broadcasting a message to everyone except for the sender
-            socket.broadcast.emit('msg', `${socket.id}: ${data}`);
-        });
-    
-        // user connection lost
-        socket.on('disconnect', function (data) {
-            io.emit('msg', `${socket.id} has left the chatroom.`);
-        });
-    });
+// const io = new Server(server, {
+//   cors: {
+//       origin: "*",
+//       methods: ["GET", "POST"]
+//   }
+// });
 
-};
+// GET /chat - 채팅 시작
+//router.get('/', verifyToken, handleSocket(io));
 
-module.exports = handleSocket;
+module.exports = router;

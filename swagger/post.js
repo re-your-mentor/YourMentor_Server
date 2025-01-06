@@ -10,7 +10,7 @@
  * /post/img:
  *   post:
  *     summary: 이미지 업로드
- *     description: 이미지를 업로드하고, 업로드된 이미지의 URL을 반환.
+ *     description: 이미지를 업로드하고, 업로드된 이미지 이름을 반환(100자리 가까이 되는 랜덤 문자열).
  *     tags: [Post]
  *     security:
  *       - bearerAuth: []
@@ -33,9 +33,12 @@
  *             schema:
  *               type: object
  *               properties:
- *                 url:
+ *                 success:
+ *                   type: boolean
+ *                   example: "true"
+ *                 img:
  *                   type: string
- *                   example: "/img/example12345.png"
+ *                   example: "example12345.png"
  *                   maxSize: 5MB
  *       500:
  *         description: 서버 에러
@@ -73,9 +76,9 @@
  *                 description: 게시글 내용
  *                 example: "이 게시글의 내용입니다."
  *                 maxLength: 2000
- *               url:
+ *               img:
  *                 type: string
- *                 description: 업로드된 이미지 URL
+ *                 description: 업로드된 이미지 이름
  *                 example: "example12345.png"
  *                 maxSize: 5MB
  *     responses:
@@ -89,21 +92,28 @@
  *                 post:
  *                   type: object
  *                   properties:
+ *                     success:
+ *                       type: boolean
+ *                       example: "true"
  *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     UserId:
  *                       type: integer
  *                       example: 1
  *                     user_nick:
  *                       type: string
  *                       example: "닉네임"
+ *                     title:
+ *                       type: string
+ *                       example: "제목임"
  *                     content:
  *                       type: string
  *                       example: "이 게시글의 내용입니다."
  *                     img:
  *                       type: string
- *                       example: "/img/example12345.png"
- *                     UserId:
- *                       type: integer
- *                       example: 1
+ *                       example: "example12345.png"
+
  *       500:
  *         description: 서버 에러
  * 
@@ -138,16 +148,19 @@
  *           schema:
  *             type: object
  *             properties:
+ *               title:
+ *                 type: string
+ *                 description: "수정할 제목"
  *               content:
  *                 type: string
  *                 description: 수정할 게시글 내용
  *                 maxLength: 2000
  *                 example: "수정된 내용입니다."
- *               url:
+ *               img:
  *                 type: string
  *                 description: 수정할 이미지 URL
  *                 maxSize: 5MB
- *                 example: "/img/edited_example12345.png"
+ *                 example: "edited_example12345.png"
  *     responses:
  *       200:
  *         description: 게시글 수정 성공
@@ -159,15 +172,21 @@
  *                 post:
  *                   type: object
  *                   properties:
+ *                     success:
+ *                       type: boolean
+ *                       example: "true"
  *                     id:
  *                       type: integer
  *                       example: 1
+ *                     title:
+ *                       type: string
+ *                       example: "수정된 제목"
  *                     content:
  *                       type: string
  *                       example: "수정된 내용입니다."
  *                     img:
  *                       type: string
- *                       example: "/img/edited_example12345.png"
+ *                       example: "edited_example12345.png"
  *       403:
  *         description: 권한 없음 (작성자가 아님)
  *       404:

@@ -11,7 +11,8 @@ exports.renderMain = async (req, res, next) => {
       order: [['createdAt', 'DESC']], 
     });
 
-    const twits = posts.map(({ user_nick, post_id, title, content, createdAt, User: { id: userId } }) => ({
+    const twits = posts.map(
+    ({ user_nick, post_id, title, content, createdAt, User: { id: userId } }) => ({
       user_nick,
       id: post_id,
       title,
