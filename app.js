@@ -102,7 +102,7 @@ app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/post', postRouter);
 app.use('/user', userRouter);
-app.use('/comment', commentRouter);
+app.use('/post/:postId/comment', commentRouter);
 app.use('/chat', chatRouter);
 
 /**

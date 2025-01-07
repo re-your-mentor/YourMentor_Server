@@ -92,7 +92,6 @@ exports.getPostById = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       post: {
-        post_nick: post.post_nick,
         id: post.id,
         content: post.content,
         createdAt: post.createdAt,

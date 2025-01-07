@@ -2,11 +2,15 @@ const { Comment, Post, User } = require('../models');
 
 // 댓글 생성 (Create)
 exports.createComment = async (req, res) => {
-  const { postId, content, user_nick, parentId } = req.body;
+  const { content, parentId } = req.body;
+  const { postId } = req.params; // URL에서 postId 가져오기
   const userId = req.user.id; // 로그인한 사용자의 id (JWT 토큰에서 가져오기)
 
   try {
     const post = await Post.findByPk(postId); // 게시글 존재 여부 확인
+    console.log('Received postId:', postId);
+    console.log(typeof postId); // postId의 타입을 확인
+
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }

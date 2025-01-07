@@ -7,7 +7,7 @@ const router = express.Router();
 // PUT /user/fix/:userId - 유저 정보 변경
 router.put('/edit/:userId', verifyToken, updateUser);
 
-// GET /user/get/:userId - 유저 정보 읽기
-router.get('/get/:userId', getUserInfo);
+// GET /user/profile/:userId - 유저 정보 읽기
+router.get('/profile/:userId', getUserInfo);
 
 module.exports = router;

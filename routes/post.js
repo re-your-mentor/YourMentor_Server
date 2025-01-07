@@ -31,7 +31,7 @@ const upload = multer({
 });
 
 // GET /post
-router.get('/', getPostWithComments);
+router.get('/:id', getPostWithComments);
 
 // POST /post/img
 router.post('/img', verifyToken, upload.single('img'), afterUploadImage);

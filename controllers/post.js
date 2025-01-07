@@ -28,7 +28,6 @@ exports.uploadPost = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findByPk(userId);
     const userNick = user.nick;
-
     
     const post = await Post.create({
       title: req.body.title,
