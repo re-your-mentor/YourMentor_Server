@@ -22,16 +22,15 @@ dotenv.config();
 // });
 // redisClient.connect().catch(console.error);
 
+const { sequelize } = require('./models');
 const indexRouter = require('./routes');
 const authRouter = require('./routes/auth');
 const postRouter = require('./routes/post');
 const userRouter = require('./routes/user');
 const commentRouter = require('./routes/comment');
-const { sequelize } = require('./models');
 const passportConfig = require('./passport');
 const logger = require('./logger');
 const chatRouter = require('./routes/socket');
-
 
 const sessionOption = {
   resave: false,
@@ -102,7 +101,7 @@ app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use('/post', postRouter);
 app.use('/user', userRouter);
-app.use('/post/:postId/comment', commentRouter);
+app.use('/comment', commentRouter);
 app.use('/chat', chatRouter);
 
 /**
@@ -130,7 +129,7 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     success: false,
     message: err.message,
-    //stack: process.env.NODE_ENV !== 'production' ? err.stack : '🔒 스택 정보는 보안 상 개인에게 재공되지 않습니다.',
+    stack: process.env.NODE_ENV !== 'production' ? err.stack : '🔒 스택 정보는 보안 상 개인에게 재공되지 않습니다.',
   });
 });
 

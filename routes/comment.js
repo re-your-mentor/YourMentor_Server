@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { createComment, getComment, deleteComment } = require('../controllers/comment');
 const { verifyToken } = require('../middlewares');
+const { 
+    getCommentsByPostId, 
+    createComment } = require('../controllers/comment');
 
-// 댓글 생성 (Create)
+// 댓글 생성( & 대댓글) /comment/
 router.post('/', verifyToken, createComment);
 
-// 게시글에 대한 댓글 조회 (Read)
-router.get('/', getComment);
+// 조회 /comment/:postId
+router.get('/', getCommentsByPostId);
 
-// 댓글 삭제 (Delete)
-router.delete('/del/:commentId', verifyToken, deleteComment);
+// 댓글 삭제
+//router.delete(':commentId',verifyToken);
 
 module.exports = router;

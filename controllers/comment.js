@@ -1,94 +1,64 @@
-const { Comment, Post, User } = require('../models');
+const { Comment, User } = require('../models');
 
-// 댓글 생성 (Create)
+// 댓글 생성 및 대댓글 생성
 exports.createComment = async (req, res) => {
-  const { content, parentId } = req.body;
-  const { postId } = req.params; // URL에서 postId 가져오기
-  const userId = req.user.id; // 로그인한 사용자의 id (JWT 토큰에서 가져오기)
+  const { content, postId, userId, reply_to } = req.body;
+  const user = await User.findByPk(userId);
 
   try {
-    const post = await Post.findByPk(postId); // 게시글 존재 여부 확인
-    console.log('Received postId:', postId);
-    console.log(typeof postId); // postId의 타입을 확인
-
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    const newComment = await Comment.create({
+    // 부모 댓글이 있으면 대댓글로, 없으면 일반 댓글로 처리
+    const comment = await Comment.create({
       content,
-      user_nick,
-      parentId,
       postId,
       userId,
+      reply_to: reply_to || null, // reply_to가 있으면 대댓글, 없으면 일반 댓글
     });
-    res.status(201).json(newComment);
-  
+
+    // 사용자 닉네임을 추가
+    comment.user_nick = user.nick;
+
+    res.status(201).json({
+      message: reply_to ? 'Reply created successfully!' : 'Comment created successfully!',
+      comment,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error creating comment' });
+    res.status(500).json({ message: 'Failed to create comment.', error });
   }
 };
 
-// 댓글 조회 (Read)
-exports.getComment = async (req, res) => {
+// 특정 게시글의 댓글 조회
+exports.getCommentsByPostId = async (req, res) => {
   const { postId } = req.params;
 
   try {
-    const post = await Post.findByPk(postId);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
     const comments = await Comment.findAll({
-      where: { postId },
+      where: { postId, reply_to: null },
       include: [
-        { 
-          model: User, 
-          attributes: ['nick']  // 댓글을 작성한 유저의 닉네임만 가져오기
+        {
+          model: Comment,
+          as: 'Replies',
+          include: [
+            {
+              model: User,
+              attributes: ['id', 'nick'],
+            },
+          ],
         },
-        { 
-          model: Comment, 
-          as: "Replies", // 대댓글을 포함시키기 위해 'Replies' alias 사용
-          attributes: ['content', 'parentId'] // 대댓글의 content와 postId를 가져오기
-        }
+        {
+          model: User,
+          attributes: ['id', 'nick'],
+        },
       ],
+      order: [['createdAt', 'ASC']],
     });
 
-    // 모든 댓글을 리스트 형식으로 변환
-    const commentList = comments.map(comment => ({
-      content: comment.content,
-      // 유저 삭제 시 대처해야 함.(미작성)
-      nick: comment.User ? comment.User.nick : null,
-      parentId: comment.Comment
-    }));
-
-    res.status(200).json(commentList);
+    res.status(200).json({
+      message: 'Comments fetched successfully!',
+      comments,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error fetching comments' });
-  }
-};
-
-// 댓글 삭제 (Delete)
-exports.deleteComment = async (req, res) => {
-  const { commentId } = req.params;
-
-  try {
-    const comment = await Comment.findByPk(commentId);
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
-    }
-
-    // 댓글 작성자만 삭제 가능
-    if (comment.userId !== req.user.id) {
-      return res.status(403).json({ message: 'Forbidden: You can only delete your own comment' });
-    }
-
-    await comment.destroy();
-    res.status(200).json({ message: 'Comment deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error deleting comment' });
+    res.status(500).json({ message: 'Failed to fetch comments.', error });
   }
 };

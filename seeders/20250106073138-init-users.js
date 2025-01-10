@@ -31,6 +31,7 @@ module.exports = {
       });
     }
 
+    console.log(users); // `users` 배열이 정의된 위치에서 출력
     await queryInterface.bulkInsert('users', users, {});
   },
 
@@ -38,5 +39,3 @@ module.exports = {
     await queryInterface.bulkDelete('users', null, {});
   }
 };
-
-console.log(users);
