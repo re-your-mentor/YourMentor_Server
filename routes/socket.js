@@ -3,7 +3,7 @@ const { verifyToken } = require('../middlewares');
 const {} = require('../controllers/user');
 const handleSocket = require('../controllers/socket');
 const { Server } = require('socket.io');
-const io = require('../app');
+//const io = require('../app');
 
 const router = express.Router();
 
