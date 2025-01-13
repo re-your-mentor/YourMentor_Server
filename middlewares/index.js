@@ -1,43 +1,40 @@
 const jwt = require('jsonwebtoken');
+const redisClient = require('../redisClient');
+const { getTokenExpiration } = require('../controllers/logout');
 
 // JWT 토큰을 검증하는 미들웨어
-exports.verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1]; // 'Bearer <token>'에서 토큰 부분만 추출
-
-  if (!token) {
-    return res.status(403).json({
-      message: '토큰이 필요합니다.'
-    });
-  }
-
+exports.verifyToken = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // 인증된 사용자 정보를 req.user에 저장
-    next();
-  } catch (error) {
-    // 유효하지 않은 토큰 처리
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        message: '유효하지 않은 토큰입니다.',
-        error: error.message, // 오류 메시지
-      });
+    const token = req.headers.authorization?.split(' ')[1]; // Bearer 토큰
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
     }
 
-    // 만료된 토큰 처리
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        message: '토큰이 만료되었습니다.',
-        error: error.message // 오류 메시지
-      });
-    }
-
-    // 기타 서버 오류 처리
-    console.error(error); // 콘솔에 에러 출력
-    return res.status(500).json({
-      code: 500,
-      message: '서버 에러',
-      error: error.message,  // 오류 메시지
-      //stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined // 프로덕션 환경에서는 스택 트레이스를 숨김
+    // 블랙리스트 확인
+    const isBlacklisted = await redisClient.get(token).catch((err) => {
+      console.error('Redis error:', err);
+      return null; // 오류 발생 시 null 반환
     });
+    if (isBlacklisted) {
+      return res.status(401).json({ message: 'Token is blacklisted. Please log in again.' });
+    }
+
+    // 토큰 만료 시간 검증 (기존의 jwt.verify에 의해 처리됨)
+    const expirationTime = getTokenExpiration(token);
+    if (expirationTime <= Math.floor(Date.now() / 1000)) {
+      return res.status(401).json({ message: 'Token is expired' });
+    }
+
+    // 토큰 검증
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid or expired token' });
+      }
+      req.user = decoded; // 유저 정보 저장
+      next();
+    });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

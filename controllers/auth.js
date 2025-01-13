@@ -2,10 +2,19 @@ const bcrypt = require('bcrypt');
 const passport = require('passport');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
+
+function validateEmail(email) {
+  if (!validator.isEmail(email)) {
+    throw new Error('Invalid email format');
+  }
+}
+
 
 exports.join = async (req, res) => {
   const { email, nick, password } = req.body;
   try {
+    validateEmail(email);
     const exUser = await User.findOne({ where: { email } });
     if (exUser) {
       return res.status(400).json({ success: false, message: 'User already exists' });

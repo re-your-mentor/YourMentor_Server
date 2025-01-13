@@ -119,7 +119,7 @@
  * @swagger
  * /auth/logout:
  *   get:
- *     summary: 로그아웃 (미개발)
+ *     summary: 로그아웃 (미작동)
  *     description: 현재 세션을 로그아웃합니다.
  *     tags: [Auth]
  *     responses:
