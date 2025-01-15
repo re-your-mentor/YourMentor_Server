@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "pm2 start server.js --name app.js"
+    "start": "nodemon app"
   },
-  "author": "ZeroCho",
+  "author": "Ur-mento",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.1.1",
