@@ -24,7 +24,7 @@
  *               img:
  *                 type: string
  *                 format: binary
- *                 description: 업로드할 이미지 파일
+ *                 description: 업로드할 이미지 파일 (현재 1개까지만 가능.)
  *     responses:
  *       200:
  *         description: 이미지 업로드 성공

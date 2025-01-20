@@ -1,5 +1,6 @@
-const User = require('../models/user');
-const Post = require('../models/post');
+const { 
+  User, Post, Comment, Message, Room, UserHashtag 
+} = require('../models');
 const bcrypt = require('bcrypt');
 
 // 유저 정보 수정 (닉네임, 비밀번호 변경 가능)
@@ -39,6 +40,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+
 // 유저 정보 조회 (Read)
 exports.getUserInfo = async (req, res) => {
   const { userId } = req.params;
@@ -67,5 +69,43 @@ exports.getUserInfo = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error get user information' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // 사용자 조회 (raw: true 사용 X)
+    const user = await User.findOne({ where: { email } });
+    console.log(user); // 조회된 사용자 출력
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // user 객체가 Sequelize 모델 인스턴스인지 확인
+    console.log(user instanceof User); // true여야 함
+    console.log(typeof user.destroy); // 'function'이어야 함
+
+    // 비밀번호 확인
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+
+    // 관련 데이터 삭제 (옵션)
+    // await Post.destroy({ where: { userId: user.id } });
+    // await Comment.destroy({ where: { userId: user.id } });
+    // await Message.destroy({ where: { userId: user.id } });
+    // await UserHashtag.destroy({ where: { userId: user.id } });
+
+    // 사용자 계정 삭제 (soft delete)
+    await user.destroy(); // destroy 메서드 호출
+
+    res.status(200).json({ message: 'User account deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };

@@ -4,9 +4,9 @@ class Hashtag extends Sequelize.Model {
   static initiate(sequelize) {
     Hashtag.init({
       title: {
-        type: Sequelize.STRING(15),
+        type: Sequelize.STRING(30),
         allowNull: false,
-        unique: true,
+        unique: true, // 해시태그는 중복되지 않도록 설정
       },
     }, {
       sequelize,
@@ -21,7 +21,7 @@ class Hashtag extends Sequelize.Model {
   }
 
   static associate(db) {
-    db.Hashtag.belongsToMany(db.Post, { through: 'PostHashtag' });
+    db.Hashtag.belongsToMany(db.User, { through: 'UserHashtag', foreignKey: 'hashtagId' }); // 다대다 관계 설정
   }
 };
 

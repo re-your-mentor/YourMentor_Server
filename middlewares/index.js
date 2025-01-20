@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const redisClient = require('../redisClient');
+//const redisClient = require('../redisClient');
 const { getTokenExpiration } = require('../controllers/logout');
 
 // JWT 토큰을 검증하는 미들웨어
@@ -11,13 +11,13 @@ exports.verifyToken = async (req, res, next) => {
     }
 
     // 블랙리스트 확인
-    const isBlacklisted = await redisClient.get(token).catch((err) => {
-      console.error('Redis error:', err);
-      return null; // 오류 발생 시 null 반환
-    });
-    if (isBlacklisted) {
-      return res.status(401).json({ message: 'Token is blacklisted. Please log in again.' });
-    }
+    // const isBlacklisted = await redisClient.get(token).catch((err) => {
+    //   console.error('Redis error:', err);
+    //   return null; // 오류 발생 시 null 반환
+    // });
+    // if (isBlacklisted) {
+    //   return res.status(401).json({ message: 'Token is blacklisted. Please log in again.' });
+    // }
 
     // 토큰 만료 시간 검증 (기존의 jwt.verify에 의해 처리됨)
     const expirationTime = getTokenExpiration(token);

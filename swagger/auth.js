@@ -29,6 +29,7 @@
  *               nick:
  *                 type: string
  *                 example: nickname
+ *                 maxLength: 30
  *               password:
  *                 type: string
  *                 example: password123
