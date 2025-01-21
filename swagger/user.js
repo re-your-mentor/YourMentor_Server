@@ -135,3 +135,46 @@
  *                   type: string
  *                   example: Error fetching user information
  */
+
+/**
+ * @swagger
+ * /user/withdraw:
+ *   delete:
+ *     summary: 유저 삭제 (회원가입)
+ *     description: 유저를 삭제 처리합니다 (db 상에서 데이터는 그대로 남음. soft delete)
+ *     tags: [user]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: 이메일
+ *               password:
+ *                 type: string
+ *                 description: 사용자 확인용
+ *     responses:
+ *       200:
+ *         description: 삭제 성공.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: String
+ *                   example: "User account deleted successfully"
+ *       500:
+ *         description: 서버 에러
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
+ */
