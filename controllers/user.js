@@ -1,13 +1,16 @@
 const { 
-  User, Post, Comment, Message, Room, UserHashtag 
-} = require('../models');
+  User, 
+  Post, 
+  Comment, 
+  Message, 
+  Room, 
+  UserHashtag } = require('../models');
 const bcrypt = require('bcrypt');
 
-// 유저 정보 수정 (닉네임, 비밀번호 변경 가능)
-exports.updateUser = async (req, res) => {
-  const { userId } = req.params; // URL에서 유저 ID 추출
-  const { nick, password, passwordAgain } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
-
+// 유저 정보 수정 (닉네임)
+exports.updateUserNick = async (req, res) => {
+  const { user_nick, userId } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
+  const nick = user_nick
   try {
     const user = await User.findByPk(userId); // 유저 조회
     if (!user) {
@@ -39,6 +42,11 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: 'Error updating user information' });
   }
 };
+
+// 유저 정보 수정 (프로필 사진)
+exports.updateUserProfile = async (req, res) => {
+  const { userId,  } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
+}
 
 
 // 유저 정보 조회 (Read)
@@ -78,15 +86,15 @@ exports.deleteUser = async (req, res) => {
   try {
     // 사용자 조회 (raw: true 사용 X)
     const user = await User.findOne({ where: { email } });
-    console.log(user); // 조회된 사용자 출력
+    //console.log(user); // 조회된 사용자 출력
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // user 객체가 Sequelize 모델 인스턴스인지 확인
-    console.log(user instanceof User); // true여야 함
-    console.log(typeof user.destroy); // 'function'이어야 함
+    // console.log(user instanceof User); // true여야 함
+    // console.log(typeof user.destroy); // 'function'이어야 함
 
     // 비밀번호 확인
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -101,7 +109,7 @@ exports.deleteUser = async (req, res) => {
     // await UserHashtag.destroy({ where: { userId: user.id } });
 
     // 사용자 계정 삭제 (soft delete)
-    await user.destroy(); // destroy 메서드 호출
+    await user.destroy();
 
     res.status(200).json({ message: 'User account deleted successfully' });
   } catch (error) {

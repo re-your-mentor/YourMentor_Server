@@ -1,30 +1,24 @@
 /**
  * @swagger
- * /user/edit/{userId}:
+ * /user/edit:
  *   put:
  *     summary: 유저 정보 수정
  *     description: 유저의 닉네임 및 비밀번호를 수정합니다.
- *     parameters:
- *       - name: userId
- *         in: path
- *         description: 수정할 유저의 ID
- *         required: true
- *         schema:
- *           type: integer
- *       - name: nick
- *         in: body
- *         description: 새 닉네임 (선택 사항)
- *         required: false
- *         schema:
- *           type: string(30)
- *           example: newNick
- *       - name: password
- *         in: body
- *         description: 새 비밀번호 (선택 사항)
- *         required: false
- *         schema:
- *           type: string(200)
- *           example: newPassword123
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: Integer
+ *                 description: 유저 아이디
+ *               user_nick:
+ *                 type: String
+ *                 description: "바뀐 유저 닉네임"
  *     responses:
  *       200:
  *         description: 유저 정보 수정 성공
@@ -56,6 +50,12 @@
  *                 message:
  *                   type: string
  *                   example: Error updating user information
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
  */
 
 /**
