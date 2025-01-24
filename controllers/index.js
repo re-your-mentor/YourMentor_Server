@@ -1,10 +1,17 @@
-const { User, Post, Hashtag, Comment } = require('../models'); // User, Post, Hashtag 모델을 가져옴
+const { 
+  User,
+  Post, 
+  Hashtag, 
+  Comment } = require('../models'); // User, Post, Hashtag 모델을 가져옴
 
 exports.renderMain = async (req, res) => {
   try {
-    // 모든 게시글 조회 (작성자 정보 포함)
+    // 모든 게시글 조회 (작성자 정보 및 해시태그 포함)
     const posts = await Post.findAll({
-      include: [{ model: User, attributes: ['id', 'nick'] }]
+      include: [
+        { model: User, attributes: ['id', 'nick'] },
+        { model: Hashtag, attributes: ['id', 'name'], through: { attributes: [] } }, // 해시태그 정보 포함
+      ],
     });
 
     // posts가 null 또는 undefined인 경우 빈 배열로 초기화
@@ -23,6 +30,10 @@ exports.renderMain = async (req, res) => {
           id: post.User.id,
           nick: post.User.nick,
         },
+        hashtags: post.Hashtags.map(hashtag => ({ // 해시태그 정보 추가
+          id: hashtag.id,
+          name: hashtag.name,
+        })),
       };
     }).filter(post => post !== null); // null인 요소 제거
 
@@ -43,8 +54,15 @@ exports.renderHashtag = async (req, res, next) => {
   try {
     const hashtag = await Hashtag.findOne({ where: { title: query } });
     let posts = [];
+
     if (hashtag) {
-      posts = await hashtag.getPosts({ include: [{ model: User }] });
+      posts = await hashtag.getPosts({
+        include: [
+          { model: User, attributes: ['id', 'nick'] },
+          { model: Hashtag, attributes: ['id', 'name'], 
+            through: { attributes: [] } }, // 해시태그 정보 포함
+        ],
+      });
     }
 
     // 검색된 게시물 데이터를 JSON 형식으로 반환
@@ -57,6 +75,10 @@ exports.renderHashtag = async (req, res, next) => {
         id: post.User.id,
         nick: post.User.nick,
       },
+      hashtags: post.Hashtags.map(hashtag => ({ // 해시태그 정보 추가
+        id: hashtag.id,
+        name: hashtag.name,
+      })),
     }));
 
     return res.status(200).json({
@@ -78,10 +100,9 @@ exports.getPostById = async (req, res, next) => {
     const post = await Post.findOne({
       where: { id: postId },
       include: [
-        {
-          model: User, // User 정보를 포함
-          attributes: ['id', 'nick'],
-        },
+        { model: User, attributes: ['id', 'nick'] },
+        { model: Hashtag, attributes: ['id', 'name'], 
+          through: { attributes: [] } }, // 해시태그 정보 포함
       ],
     });
 
@@ -99,15 +120,19 @@ exports.getPostById = async (req, res, next) => {
           id: post.User.id,
           nick: post.User.nick,
         },
+        hashtags: post.Hashtags.map(hashtag => ({ // 해시태그 정보 추가
+          id: hashtag.id,
+          name: hashtag.name,
+        })),
       },
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: error.message }); // 오류 발생 시 JSON 형식으로 반환
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-//게시물 단일 조회
+// 게시물 세부 조회 ( 게시글 + 댓글 )
 exports.getPostWithComments = async (req, res, next) => {
   const { id } = req.params;
 
@@ -115,20 +140,10 @@ exports.getPostWithComments = async (req, res, next) => {
     const post = await Post.findOne({
       where: { id },
       include: [
-        {
-          model: User, 
-          attributes: ['id', 'nick', 'profile_pic'],
-        },
-        {
-          model: Comment,
-          include: [
-            {
-              model: User,
-              attributes: ['id', 'nick'],
-            },
-          ],
-          required: false,
-        },
+        { model: User, attributes: ['id', 'nick', 'profile_pic'] },
+        { model: Comment, include: [{ model: User, attributes: ['id', 'nick'] }], required: false },
+        { model: Hashtag, attributes: ['id', 'name'], 
+          through: { attributes: [] } }, // 해시태그 정보 포함
       ],
     });
 
@@ -151,8 +166,12 @@ exports.getPostWithComments = async (req, res, next) => {
         user: {
           id: post.User.id,
           nick: post.User.nick,
-          img: post.User.profile_pic
+          img: post.User.profile_pic,
         },
+        hashtags: post.Hashtags.map(hashtag => ({ // 해시태그 정보 추가
+          id: hashtag.id,
+          name: hashtag.name,
+        })),
         comments: post.Comments.map(comment => ({
           comment_nick: comment.post_nick,
           id: comment.id,
@@ -166,7 +185,7 @@ exports.getPostWithComments = async (req, res, next) => {
       },
     });
   } catch (err) {
-    console.error('Error fetching post with comments:', err.message); // 에러 로그
+    console.error('Error fetching post with comments:', err.message);
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch post',

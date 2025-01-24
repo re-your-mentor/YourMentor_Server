@@ -24,7 +24,7 @@ class Post extends Sequelize.Model {
       timestamps: true,
       underscored: false,
       modelName: 'Post',
-      tableName: 'posts', // 테이블 이름 명시
+      tableName: 'posts',
       paranoid: true,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
@@ -33,7 +33,7 @@ class Post extends Sequelize.Model {
 
   static associate(db) {
     db.Post.belongsTo(db.User, { foreignKey: 'userId', targetKey: 'id' });
-    db.Post.belongsToMany(db.Hashtag, { through: 'PostHashtag' });
+    db.Post.belongsToMany(db.Hashtag, { through: 'PostHashtag', foreignKey: 'postId' }); // 다대다 관계 설정
     db.Post.hasMany(db.Comment, { foreignKey: 'postId', sourceKey: 'id' });
   }
 }

@@ -7,7 +7,8 @@ const {
     updateUserNick, 
     getUserInfo, 
     deleteUser, 
-    updateUserProfile } = require('../controllers/user');
+    updateUserProfile,
+    userHashtagAdd } = require('../controllers/user');
 
 const router = express.Router();
 

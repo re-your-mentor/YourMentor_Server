@@ -4,7 +4,7 @@ const { Post, Hashtag, User } = require('../models');
 exports.afterUploadImage = (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: '파일 업로드에 실패했습니다.' });
+      return res.status(400).json({ success: false, message: '업로드한 파일이 존재하지 않습니다.' });
     }
     res.json({ success: true, img: `${req.file.filename}` });
   } catch (error) {
@@ -34,18 +34,16 @@ exports.uploadPost = async (req, res) => {
       content: req.body.content,
       img: req.body.img || null,
       userId: req.user.id, // 로그인한 사용자의 ID
+      user_nick: userNick
     });
 
     const hashtags = req.body.content.match(/#[^\s#]*/g);
     if (hashtags) {
-      const result = await Promise.all(
-        hashtags.map(tag =>
-          Hashtag.findOrCreate({
-            where: { title: tag.slice(1).toLowerCase() },
-          })
-        )
-      );
-      await post.addHashtags(result.map(r => r[0]));
+      const tagNames = hashtags.map(tag => tag.slice(1).toLowerCase());
+      const existingTags = await Hashtag.findAll({
+        where: { title: tagNames },
+      });
+      await post.addHashtags(existingTags);
     }
 
     res.json({ success: true, post });

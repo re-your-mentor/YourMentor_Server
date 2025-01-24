@@ -6,6 +6,7 @@ const {
   Room, 
   UserHashtag } = require('../models');
 const bcrypt = require('bcrypt');
+const { sync } = require('../models/hashtag');
 
 // 유저 정보 수정 (닉네임)
 exports.updateUserNick = async (req, res) => {
@@ -45,7 +46,7 @@ exports.updateUserNick = async (req, res) => {
 
 // 유저 정보 수정 (프로필 사진)
 exports.updateUserProfile = async (req, res) => {
-  const { userId,  } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
+  const { userId,   } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
 }
 
 
@@ -80,6 +81,64 @@ exports.getUserInfo = async (req, res) => {
   }
 };
 
+exports.userHashtagAdd = async (req, res) => {
+  const { userId, hashtag } = req.body; // 요청 데이터에서 userId와 hashtag 배열 추출
+
+  try {
+    const user = await User.findOne({
+      where: { id: userId },
+      include: [{ model: Hashtag, through: { attributes: [] } }], // 유저가 가진 해시태그 정보 포함
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: '유저를 찾을 수 없습니다.' });
+    }
+
+    // 유저가 이미 가진 해시태그 ID 추출
+    const existingHashtagIds = user.Hashtags.map((tag) => tag.id);
+
+    // 중복되지 않은 새로운 해시태그 ID 필터링
+    const newHashtagIds = hashtag.filter((id) => !existingHashtagIds.includes(id));
+
+    // 유저가 가진 해시태그 수 + 새로운 해시태그 수가 5개를 초과하는지 검증
+    if (existingHashtagIds.length + newHashtagIds.length > 5) {
+      return res.status(400).json({
+        success: false,
+        message: '해시태그는 최대 5개까지 추가할 수 있습니다.',
+      });
+    }
+
+    // 새로운 해시태그 조회
+    const hashtagsToAdd = await Hashtag.findAll({
+      where: { id: newHashtagIds },
+    });
+
+    // 유저에 해시태그 추가
+    await user.addHashtags(hashtagsToAdd);
+
+    // 추가된 해시태그 정보
+    const addedHashtags = hashtagsToAdd.map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+    }));
+
+    // 성공 응답
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        nick: user.nick,
+      },
+      addedHashtags,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+// 유저 삭제 (탈퇴)
 exports.deleteUser = async (req, res) => {
   const { email, password } = req.body;
 

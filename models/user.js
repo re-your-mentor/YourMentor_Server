@@ -46,7 +46,7 @@ class User extends Sequelize.Model {
     db.User.hasMany(db.Message, { foreignKey: 'userId' });
     db.User.hasMany(db.Room, { foreignKey: 'userId' });
     db.User.hasMany(db.Post, { foreignKey: 'userId' });
-    db.User.belongsToMany(db.Hashtag, { through: 'UserHashtag', foreignKey: 'userId' }); // 다대다 관계 설정
+    db.User.belongsToMany(db.Hashtag, { through: 'UserHashtag', foreignKey: 'userId' });
   }
 };
 
