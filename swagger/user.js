@@ -178,3 +178,63 @@
  *     name: "Authorization"
  *     description: "Bearer token을 통해 인증합니다."
  */
+
+/**
+ * @swagger
+ * /user/tag:
+ *   put:
+ *     summary: 유저 정보 수정
+ *     description: 유저의 닉네임 및 비밀번호를 수정합니다.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: Integer
+ *                 description: 유저 아이디
+ *               user_nick:
+ *                 type: String
+ *                 description: "바뀐 유저 닉네임"
+ *     responses:
+ *       200:
+ *         description: 유저 정보 수정 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User information updated successfully"
+ *       404:
+ *         description: 유저를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User not found
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error updating user information
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
+ */

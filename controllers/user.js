@@ -4,7 +4,7 @@ const {
   Comment, 
   Message, 
   Room, 
-  UserHashtag } = require('../models');
+  Hashtag } = require('../models');
 const bcrypt = require('bcrypt');
 const { sync } = require('../models/hashtag');
 
@@ -81,6 +81,46 @@ exports.getUserInfo = async (req, res) => {
   }
 };
 
+// 유저 삭제 (탈퇴)
+exports.deleteUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // 사용자 조회 (raw: true 사용 X)
+    const user = await User.findOne({ where: { email } });
+    //console.log(user); // 조회된 사용자 출력
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // user 객체가 Sequelize 모델 인스턴스인지 확인
+    // console.log(user instanceof User); // true여야 함
+    // console.log(typeof user.destroy); // 'function'이어야 함
+
+    // 비밀번호 확인
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+
+    // 관련 데이터 삭제 (옵션)
+    // await Post.destroy({ where: { userId: user.id } });
+    // await Comment.destroy({ where: { userId: user.id } });
+    // await Message.destroy({ where: { userId: user.id } });
+    // await UserHashtag.destroy({ where: { userId: user.id } });
+
+    // 사용자 계정 삭제 (soft delete)
+    await user.destroy();
+
+    res.status(200).json({ message: 'User account deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+// 헤시테그 추가
 exports.userHashtagAdd = async (req, res) => {
   const { userId, hashtag } = req.body; // 요청 데이터에서 userId와 hashtag 배열 추출
 
@@ -138,41 +178,60 @@ exports.userHashtagAdd = async (req, res) => {
   }
 };
 
-// 유저 삭제 (탈퇴)
-exports.deleteUser = async (req, res) => {
-  const { email, password } = req.body;
+exports.userHashtagDelete = async (req, res) => {
+  const { userId, hashtagIds } = req.body; // 요청 데이터에서 userId와 삭제할 해시태그 ID 배열 추출
 
   try {
-    // 사용자 조회 (raw: true 사용 X)
-    const user = await User.findOne({ where: { email } });
-    //console.log(user); // 조회된 사용자 출력
+    // 유저 조회
+    const user = await User.findOne({
+      where: { id: userId },
+      include: [{ model: Hashtag, through: { attributes: [] } }], // 유저가 가진 해시태그 정보 포함
+    });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ success: false, message: '유저를 찾을 수 없습니다.' });
     }
 
-    // user 객체가 Sequelize 모델 인스턴스인지 확인
-    // console.log(user instanceof User); // true여야 함
-    // console.log(typeof user.destroy); // 'function'이어야 함
+    // 유저가 가진 해시태그 ID 추출
+    const existingHashtagIds = user.Hashtags.map((tag) => tag.id);
 
-    // 비밀번호 확인
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid password' });
+    // 삭제할 해시태그 ID가 유저가 가진 해시태그에 포함되는지 검증
+    const validHashtagIds = hashtagIds.filter((id) => existingHashtagIds.includes(id));
+
+    if (validHashtagIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '삭제할 해시태그가 유저의 해시태그 목록에 없습니다.',
+      });
     }
 
-    // 관련 데이터 삭제 (옵션)
-    // await Post.destroy({ where: { userId: user.id } });
-    // await Comment.destroy({ where: { userId: user.id } });
-    // await Message.destroy({ where: { userId: user.id } });
-    // await UserHashtag.destroy({ where: { userId: user.id } });
+    // 삭제할 해시태그 조회
+    const hashtagsToRemove = await Hashtag.findAll({
+      where: { id: validHashtagIds },
+    });
 
-    // 사용자 계정 삭제 (soft delete)
-    await user.destroy();
+    // 유저에서 해시태그 삭제
+    await user.removeHashtags(hashtagsToRemove);
 
-    res.status(200).json({ message: 'User account deleted successfully' });
+    // 삭제된 해시태그 정보
+    const removedHashtags = hashtagsToRemove.map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+    }));
+
+    // 성공 응답
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        nick: user.nick,
+      },
+      removedHashtags,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 };
+
