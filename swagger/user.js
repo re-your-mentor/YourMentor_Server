@@ -142,7 +142,6 @@
  *   delete:
  *     summary: 유저 삭제 (회원가입)
  *     description: 유저를 삭제 처리합니다 (db 상에서 데이터는 그대로 남음. soft delete)
- *     tags: [user]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -179,12 +178,13 @@
  *     description: "Bearer token을 통해 인증합니다."
  */
 
+
 /**
  * @swagger
  * /user/tag:
- *   put:
- *     summary: 유저 정보 수정
- *     description: 유저의 닉네임 및 비밀번호를 수정합니다.
+ *   post:
+ *     summary: 유저 테그 추가 (중복 걸러낼 수 있음.)
+ *     description: 유저의 관심 테그를 추가합니다.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -195,22 +195,55 @@
  *             type: object
  *             properties:
  *               userId:
- *                 type: Integer
+ *                 type: integer
  *                 description: 유저 아이디
- *               user_nick:
- *                 type: String
- *                 description: "바뀐 유저 닉네임"
+ *               hashtag:
+ *                 type: array
+ *                 description: 헤시테그의 숫자를 배열로 받습니다.
+ *                 items:
+ *                   type: integer
+ *                 example: [1, 2, 3]
  *     responses:
  *       200:
- *         description: 유저 정보 수정 성공
+ *         description: 유저 테그 추가 성공
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                   example: "User information updated successfully"
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     email:
+ *                       type: string
+ *                       example: dev@example.com
+ *                     nick:
+ *                       type: string
+ *                       example: Dev User
+ *                 addedHashtags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 2
+ *                       name:
+ *                         type: string
+ *                         example: python
+ *                   example:
+ *                     - id: 2
+ *                       name: python
+ *                     - id: 3
+ *                       name: java
+ *                     - id: 4
+ *                       name: typescript
  *       404:
  *         description: 유저를 찾을 수 없음
  *         content:
@@ -231,10 +264,10 @@
  *                 message:
  *                   type: string
  *                   example: Error updating user information
- *   securityDefinitions:
- *     bearerAuth:
- *     type: "apiKey"
- *     in: "header"
- *     name: "Authorization"
- *     description: "Bearer token을 통해 인증합니다."
+ * securityDefinitions:
+ *   bearerAuth:
+ *     type: apiKey
+ *     in: header
+ *     name: Authorization
+ *     description: Bearer token을 통해 인증합니다.
  */

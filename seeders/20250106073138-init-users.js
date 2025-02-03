@@ -20,18 +20,21 @@ module.exports = {
 
       // 기본 해시태그 추가
       // 기본 해시태그 추가
+      const now = new Date();
+
       hashtags.push(
-          { name: 'JavaScript' },
-          { name: 'Node.js' },
-          { name: 'Express.js' },
-          { name: 'Sequelize' },
-          { name: 'MySQL' },
-          { name: 'RESTfulAPI' },
-          { name: 'JWT' },
-          { name: 'Postman' },
-          { name: 'Git' },
-          { name: 'Deployment' },
-      )
+        { name: '안드로이드', createdAt: now, updatedAt: now },
+        { name: '서버', createdAt: now, updatedAt: now },
+        { name: 'iOS', createdAt: now, updatedAt: now },
+        { name: '웹', createdAt: now, updatedAt: now },
+        { name: '임베디드', createdAt: now, updatedAt: now },
+        { name: 'Kotlin', createdAt: now, updatedAt: now },
+        { name: 'Java', createdAt: now, updatedAt: now },
+        { name: 'Swift', createdAt: now, updatedAt: now },
+        { name: 'JavaScript', createdAt: now, updatedAt: now },
+        { name: 'Arduino', createdAt: now, updatedAt: now }
+      );
+      
     }
 
     if (env === 'test') {
@@ -47,18 +50,20 @@ module.exports = {
       });
 
       // 기본 해시태그 추가
+      const now = new Date();
       hashtags.push(
-        { name: 'JavaScript' },
-        { name: 'Node.js' },
-        { name: 'Express.js' },
-        { name: 'Sequelize' },
-        { name: 'MySQL' },
-        { name: 'RESTfulAPI' },
-        { name: 'JWT' },
-        { name: 'Postman' },
-        { name: 'Git' },
-        { name: 'Deployment' },
-    );
+        { name: '안드로이드', createdAt: now, updatedAt: now },
+        { name: '서버', createdAt: now, updatedAt: now },
+        { name: 'iOS', createdAt: now, updatedAt: now },
+        { name: '웹', createdAt: now, updatedAt: now },
+        { name: '임베디드', createdAt: now, updatedAt: now },
+        { name: 'Kotlin', createdAt: now, updatedAt: now },
+        { name: 'Java', createdAt: now, updatedAt: now },
+        { name: 'Swift', createdAt: now, updatedAt: now },
+        { name: 'JavaScript', createdAt: now, updatedAt: now },
+        { name: 'Arduino', createdAt: now, updatedAt: now }
+      );
+
     }
 
     // users 테이블에 데이터 삽입 (중복 방지)
