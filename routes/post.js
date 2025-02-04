@@ -1,10 +1,13 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
 const fs = require('fs');
 
 const { getPostWithComments } = require('../controllers/');
-const { afterUploadImage, uploadPost, updatePost, deletePost} = require('../controllers/post');
+const { 
+  processImage, 
+  afterUploadImage, 
+  uploadPost, 
+  updatePost, deletePost} = require('../controllers/post');
 const { verifyToken } = require('../middlewares');
 
 const router = express.Router();
@@ -16,28 +19,20 @@ try {
   fs.mkdirSync('uploads');
 }
 
+const storage = multer.memoryStorage(); // 메모리 저장 (sharp 적용 위해)
 const upload = multer({
-  storage: multer.diskStorage({
-    destination(req, file, cb) {
-      cb(null, 'uploads/');
-    },
-    filename(req, file, cb) {
-      const ext = path.extname(file.originalname);
-      cb(null, path.basename(file.originalname, ext) + Date.now() + ext);
-    },
-  }),
-  //5MB
-  limits: { fileSize: 5 * 1024 * 1024 },
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 제한
 });
 
 // GET /post
 router.get('/:id', getPostWithComments);
 
 // POST /post/img
-router.post('/img', verifyToken, upload.single('img'), afterUploadImage);
+router.post('/img', verifyToken, upload.single('img'), processImage, afterUploadImage);
 
 // POST /post
-const upload2 = multer();
+const upload2 = multer(); // multer()를 실행해서 인스턴스 생성
 router.post('/', verifyToken, upload2.none(), uploadPost);
 
 // PUT /post/:id

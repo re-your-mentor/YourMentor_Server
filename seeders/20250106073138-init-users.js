@@ -90,3 +90,4 @@ module.exports = {
     await queryInterface.bulkDelete('hashtags', null, {});
   }
 };
+

@@ -122,12 +122,13 @@ exports.deleteUser = async (req, res) => {
 
 // 헤시테그 추가
 exports.userHashtagAdd = async (req, res) => {
-  const { userId, hashtag } = req.body; // 요청 데이터에서 userId와 hashtag 배열 추출
+  const { userId, hashtag } = req.body;
 
   try {
+    // 유저 조회
     const user = await User.findOne({
       where: { id: userId },
-      include: [{ model: Hashtag, through: { attributes: [] } }], // 유저가 가진 해시태그 정보 포함
+      include: [{ model: Hashtag, through: { attributes: [] } }],
     });
 
     if (!user) {
@@ -136,9 +137,11 @@ exports.userHashtagAdd = async (req, res) => {
 
     // 유저가 이미 가진 해시태그 ID 추출
     const existingHashtagIds = user.Hashtags.map((tag) => tag.id);
+    console.log('Existing Hashtags:', existingHashtagIds);
 
     // 중복되지 않은 새로운 해시태그 ID 필터링
     const newHashtagIds = hashtag.filter((id) => !existingHashtagIds.includes(id));
+    console.log('New Hashtags to add:', newHashtagIds);
 
     // 유저가 가진 해시태그 수 + 새로운 해시태그 수가 5개를 초과하는지 검증
     if (existingHashtagIds.length + newHashtagIds.length > 5) {
@@ -148,13 +151,24 @@ exports.userHashtagAdd = async (req, res) => {
       });
     }
 
-    // 새로운 해시태그 조회
-    const hashtagsToAdd = await Hashtag.findAll({
-      where: { id: newHashtagIds },
-    });
+    // 새로운 해시태그 조회 또는 생성
+    const hashtagsToAdd = await Promise.all(
+      newHashtagIds.map(async (id) => {
+        const existingTag = await Hashtag.findOne({ where: { id } });
+        if (!existingTag) {
+          // 해시태그가 존재하지 않으면 새로 생성
+          return Hashtag.create({ id, name: `hashtag-${id}` });
+        }
+        return existingTag;
+      })
+    );
+
+    console.log('Hashtags found to add:', hashtagsToAdd);
 
     // 유저에 해시태그 추가
-    await user.addHashtags(hashtagsToAdd);
+    if (hashtagsToAdd.length > 0) {
+      await user.addHashtags(hashtagsToAdd);
+    }
 
     // 추가된 해시태그 정보
     const addedHashtags = hashtagsToAdd.map((tag) => ({
@@ -162,7 +176,6 @@ exports.userHashtagAdd = async (req, res) => {
       name: tag.name,
     }));
 
-    // 성공 응답
     res.status(200).json({
       success: true,
       user: {
@@ -177,6 +190,7 @@ exports.userHashtagAdd = async (req, res) => {
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 };
+
 
 exports.userHashtagDelete = async (req, res) => {
   const { userId, hashtagIds } = req.body; // 요청 데이터에서 userId와 삭제할 해시태그 ID 배열 추출
