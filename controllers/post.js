@@ -49,7 +49,7 @@ exports.uploadPost = async (req, res) => {
     }
 
     const userId = req.user.id;
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId);3
     const userNick = user.nick;
 
     // 게시글 생성
@@ -101,12 +101,14 @@ exports.updatePost = async (req, res) => {
     });
 
     if (!post) {
-      return res.status(404).json({ success: false, message: '수정할 게시글을 찾을 수 없습니다.' });
+      return res.status(404).json({ 
+        success: false, message: '수정할 게시글을 찾을 수 없습니다.' });
     }
 
     if (!req.user || post.userId !== req.user.id) {
       console.log(req.user, post.userId);
-      return res.status(403).json({ success: false, message: '게시글 수정 권한이 없습니다.' });
+      return res.status(403).json({ 
+        success: false, message: '게시글 수정 권한이 없습니다.' });
     }
 
     // 게시글 기본 정보 업데이트
@@ -150,7 +152,12 @@ exports.deletePost = async (req, res) => {
       return res.status(404).json({ success: false, message: '삭제할 게시글을 찾을 수 없습니다.' });
     }
 
-    if (!req.user || post.UserId !== req.user.id) {
+    // 토큰에서 추출한 사용자 정보 확인
+    console.log('User from token:', req.user);
+    console.log('Post UserId:', post.userId);
+
+    // 타입 일치를 위해 Number로 변환
+    if (!req.user || post.userId !== Number(req.user.id)) {
       return res.status(403).json({ success: false, message: '게시글 삭제 권한이 없습니다.' });
     }
 

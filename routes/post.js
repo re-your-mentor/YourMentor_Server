@@ -25,20 +25,20 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 제한
 });
 
-// GET /post
-router.get('/:id', getPostWithComments);
-
-// POST /post/img
+// POST /post/img - 이미지 업로드
 router.post('/img', verifyToken, upload.single('img'), processImage, afterUploadImage);
 
-// POST /post
+// POST /post - 게시글 생성
 const upload2 = multer(); // multer()를 실행해서 인스턴스 생성
 router.post('/', verifyToken, upload2.none(), uploadPost);
 
-// PUT /post/:id
+// GET /post/:id - 게시글 세부조회 
+router.get('/:id', getPostWithComments);
+
+// PUT /post/:id - 게시글 수정
 router.put('/:id', verifyToken, updatePost);
 
-// DELETE /post/:id
+// DELETE /post/:id - 게시글 삭제
 router.delete('/:id', verifyToken, deletePost);
 
 module.exports = router;

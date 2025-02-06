@@ -9,7 +9,7 @@ const {
 router.post('/', verifyToken, createComment);
 
 // 조회 /comment/:postId
-router.get('/', getCommentsByPostId);
+//router.get('/', getCommentsByPostId);
 
 // 댓글 삭제
 //router.delete(':commentId',verifyToken);

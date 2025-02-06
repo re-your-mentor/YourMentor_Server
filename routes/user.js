@@ -38,10 +38,10 @@ const upload = multer({
 router.get('/profile/:userId', getUserInfo);
 
 // PUT /user/edit/:userId - 유저 닉네임 변경
-router.put('/edit/nick', verifyToken, updateUserNick);
+router.put('/edit/nick/:userId', verifyToken, updateUserNick);
 
 // PUT /user/edit/:userId - 유저 프로필 사진 변경
-router.put('/edit/pic/:userId', verifyToken, updateUserProfile);
+router.put('/edit/profile/:userId', verifyToken, updateUserProfile);
 
 
 // DELETE /user/withdraw - 유저 삭제

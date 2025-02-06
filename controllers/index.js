@@ -156,7 +156,8 @@ exports.getPostWithComments = async (req, res, next) => {
       where: { id },
       include: [
         { model: User, attributes: ['id', 'nick', 'profile_pic'] },
-        { model: Comment, include: [{ model: User, attributes: ['id', 'nick'] }], required: false },
+        { model: Comment, include: 
+          [{ model: User, attributes: ['id', 'nick'] }], required: false },
         { model: Hashtag, attributes: ['id', 'name'], 
           through: { attributes: [] } }, // 해시태그 정보 포함
       ],
@@ -189,8 +190,9 @@ exports.getPostWithComments = async (req, res, next) => {
           name: hashtag.name,
         })),
         comments: post.Comments.map(comment => ({
-          comment_nick: comment.post_nick,
           id: comment.id,
+          reply_to: comment.reply_to,
+          comment_nick: comment.post_nick,
           content: comment.content,
           createdAt: comment.createdAt,
           user: {

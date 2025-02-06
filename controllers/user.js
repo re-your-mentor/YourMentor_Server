@@ -10,7 +10,7 @@ const { sync } = require('../models/hashtag');
 
 // 유저 정보 수정 (닉네임 및 비밀번호)
 exports.updateUserNick = async (req, res) => {
-  const { user_nick, password, userId } = req.body; // 요청 본문에서 닉네임, 비밀번호, userId 추출
+  const { user_nick, userId } = req.body; // 요청 본문에서 닉네임, 비밀번호, userId 추출
   const nick = user_nick;
 
   try {
@@ -19,16 +19,10 @@ exports.updateUserNick = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+  
     // 닉네임이 있을 경우 닉네임 수정
     if (nick) {
       user.nick = nick;
-    }
-
-    // 비밀번호가 있을 경우 비밀번호 해싱 후 수정
-    if (password) {
-      const saltRounds = parseInt(process.env.SALT_ROUND); // SALT_ROUND를 숫자로 변환
-      const hashedPassword = await bcrypt.hash(password, saltRounds); // 비동기 해싱
-      user.password = hashedPassword;
     }
 
     await user.save(); // 변경 사항 저장

@@ -136,11 +136,11 @@ app.use((err, req, res, next) => {
 //swagger 테스트
 //console.log(JSON.stringify(specs, null, 2));
 
-const server = app.listen(app.get('port'), () => {
-  console.log(`Server running on port ${app.get('port')}`);
-});
-
-// 미배포 환경에서 내부망 통신에 사용
-// const server = app.listen(app.get('port'),app.get('host'), () => {
+// const server = app.listen(app.get('port'), () => {
 //   console.log(`Server running on port ${app.get('port')}`);
 // });
+
+// 미배포 환경에서 내부망 통신에 사용
+const server = app.listen(app.get('port'),app.get('host'), () => {
+  console.log(`Server running on port ${app.get('port')}`);
+});

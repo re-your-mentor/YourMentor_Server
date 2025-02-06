@@ -163,7 +163,7 @@
  * @swagger
  * /auth/google:
  *   get:
- *     summary: 구글 로그인 요청
+ *     summary: 구글 로그인 요청 (안함)
  *     description: 구글 OAuth 인증을 시작합니다.
  *     tags: [Auth]
  *     responses:
@@ -175,7 +175,7 @@
  * @swagger
  * /auth/google/callback:
  *   get:
- *     summary: 구글 로그인 콜백
+ *     summary: 구글 로그인 콜백 (안함)
  *     description: 구글 OAuth 인증 완료 후 콜백 처리.
  *     tags: [Auth]
  *     responses:

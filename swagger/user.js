@@ -2,8 +2,8 @@
  * @swagger
  * /user/edit:
  *   put:
- *     summary: 유저 정보 수정
- *     description: 유저의 닉네임 및 비밀번호를 수정합니다.
+ *     summary: 유저 닉네임 수정
+ *     description: 유저의 닉네임을 수정합니다.
  *     security:
  *       - bearerAuth: []
  *     requestBody:

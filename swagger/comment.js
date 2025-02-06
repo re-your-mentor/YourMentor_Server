@@ -7,10 +7,10 @@
 
 /**
  * @swagger
- * post/{postId}/comment:
+ * /comment:
  *   post:
  *     summary: 댓글 생성
- *     description: 게시글에 댓글을 추가합니다.
+ *     description: 게시글에 댓글을 추가합니다. (일반 댓글 또는 대댓글)
  *     tags: [Comment]
  *     security:
  *       - BearerAuth: []
@@ -24,18 +24,16 @@
  *               postId:
  *                 type: integer
  *                 description: 게시글 ID
- *                 example: integer
+ *                 example: 15
  *               parentId:
  *                 type: integer
- *                 description: null 일시 일반댓글. 다른 숫자일 시 대댓글 처리.
+ *                 nullable: true
+ *                 description: null일 시 일반 댓글, 다른 숫자일 시 대댓글 처리
+ *                 example: null
  *               content:
  *                 type: string
  *                 description: 댓글 내용
- *                 example: "좋은 글입니다!"
- *               user_nick:
- *                 type: string
- *                 description: 게시글 작성자의 닉네임
- *                 example: "authorNick"
+ *                 example: "나요 나"
  *     responses:
  *       201:
  *         description: 댓글 생성 성공
@@ -44,65 +42,62 @@
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
- *                   description: 댓글 ID
- *                 postId:
- *                   type: integer
- *                 userId:
- *                   type: integer
- *                 parentId:
- *                   type: integer
- *                   required: false
- *                 content:
+ *                 message:
  *                   type: string
- *                 user_nick:
- *                   type: string
+ *                   example: "Comment created successfully!"
+ *                 comment:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 8
+ *                     content:
+ *                       type: string
+ *                       example: "나요 나"
+ *                     postId:
+ *                       type: integer
+ *                       example: 15
+ *                     reply_to:
+ *                       type: integer
+ *                       nullable: true
+ *                       example: null
+ *                     user_nick:
+ *                       type: string
+ *                       example: "a"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-02-06T05:49:36.091Z"
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-02-06T05:49:36.091Z"
  *       404:
  *         description: 게시글을 찾을 수 없음
- *       500:
- *         description: 서버 에러
- */
-
-/**
- * @swagger
- * post/{postId}/comment:
- *   get:
- *     summary: 댓글 조회
- *     description: 특정 게시글에 대한 모든 댓글을 조회.
- *     tags: [Comment]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: postId
- *         required: true
- *         schema:
- *           type: integer
- *         description: 게시글 ID
- *     responses:
- *       200:
- *         description: 댓글 조회 성공
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   commentId:
- *                     type: string
- *                   parentId:
- *                     type: integer
- *                     description: null 일시 일반댓글. 다른 숫자일 시 대댓글 처리.
- *                   content:
- *                     type: string
- *                   user_nick:
- *                     type: string
- *       404:
- *         description: 게시글을 찾을 수 없음
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Post not found."
  *       500:
  *         description: 서버 에러
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to create comment."
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
  */
 
 /**
