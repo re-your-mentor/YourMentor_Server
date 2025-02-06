@@ -92,6 +92,54 @@ exports.uploadPost = async (req, res) => {
   }
 };
 
+// 게시글 수정
+exports.updatePost = async (req, res) => {
+  try {
+    const post = await Post.findOne({
+      where: { id: req.params.id },
+      include: [{ model: Hashtag }], // 해시태그 관계 포함
+    });
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: '수정할 게시글을 찾을 수 없습니다.' });
+    }
+
+    if (!req.user || post.userId !== req.user.id) {
+      console.log(req.user, post.userId);
+      return res.status(403).json({ success: false, message: '게시글 수정 권한이 없습니다.' });
+    }
+
+    // 게시글 기본 정보 업데이트
+    await post.update({
+      title: req.body.title || post.title,
+      content: req.body.content || post.content,
+      img: req.body.img ? req.body.img : (post.img ? post.img : null),
+    });
+
+    // 해시태그 업데이트
+    if (req.body.hashtags && Array.isArray(req.body.hashtags)) {
+      // 기존 해시태그 관계 제거
+      await post.setHashtags([]);
+
+      // 새로운 해시태그 관계 설정
+      const hashtags = await Hashtag.findAll({
+        where: { id: req.body.hashtags }, // 요청으로 받은 해시태그 ID로 검색
+      });
+      await post.setHashtags(hashtags); // 새로운 해시태그 관계 설정
+    }
+
+    // 업데이트된 게시글 정보 반환 (해시태그 포함)
+    const updatedPost = await Post.findOne({
+      where: { id: req.params.id },
+      include: [{ model: Hashtag }], // 해시태그 관계 포함
+    });
+
+    res.json({ success: true, post: updatedPost });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: '게시글 수정 중 오류 발생' });
+  }
+};
 
 // 게시글 삭제
 exports.deletePost = async (req, res) => {
@@ -111,33 +159,5 @@ exports.deletePost = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: '게시글 삭제 중 오류가 발생했습니다.' });
-  }
-};
-
-// 게시글 수정
-exports.updatePost = async (req, res) => {
-  try {
-    const post = await Post.findOne({ where: { id: req.params.id } });
-
-    if (!post) {
-      return res.status(404).json({ success: false, message: '수정할 게시글을 찾을 수 없습니다.' });
-    }
-
-    
-    if (!req.user || post.userId !== req.user.id) {
-      console.log(req.user, post.userId)
-      return res.status(403).json({ success: false, message: '게시글 수정 권한이 없습니다.' });
-    }
-
-    await post.update({
-      title: req.body.title || post.title,
-      content: req.body.content || post.content, // 기존 값 유지
-      img: req.body.img ? req.body.img : (post.img ? post.img : null),
-    });
-
-    res.json({ success: true, post });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: '게시글 수정 중 오류 발생' });
   }
 };

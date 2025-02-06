@@ -8,21 +8,16 @@ const {
 const bcrypt = require('bcrypt');
 const { sync } = require('../models/hashtag');
 
-// 유저 정보 수정 (닉네임)
+// 유저 정보 수정 (닉네임 및 비밀번호)
 exports.updateUserNick = async (req, res) => {
-  const { user_nick, userId } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
-  const nick = user_nick
+  const { user_nick, password, userId } = req.body; // 요청 본문에서 닉네임, 비밀번호, userId 추출
+  const nick = user_nick;
+
   try {
     const user = await User.findByPk(userId); // 유저 조회
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    const saltRounds = process.env.SALT_ROUND;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    user.password = hashedPassword;
-
-    if( (!nick == user.nick) || password )
 
     // 닉네임이 있을 경우 닉네임 수정
     if (nick) {
@@ -31,8 +26,8 @@ exports.updateUserNick = async (req, res) => {
 
     // 비밀번호가 있을 경우 비밀번호 해싱 후 수정
     if (password) {
-      const saltRounds = process.env.SALT_ROUND;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      const saltRounds = parseInt(process.env.SALT_ROUND); // SALT_ROUND를 숫자로 변환
+      const hashedPassword = await bcrypt.hash(password, saltRounds); // 비동기 해싱
       user.password = hashedPassword;
     }
 
@@ -122,7 +117,7 @@ exports.deleteUser = async (req, res) => {
 
 // 헤시테그 추가
 exports.userHashtagAdd = async (req, res) => {
-  const { userId, hashtag } = req.body;
+  const { userId, hashtags } = req.body;
 
   try {
     // 유저 조회
@@ -136,11 +131,11 @@ exports.userHashtagAdd = async (req, res) => {
     }
 
     // 유저가 이미 가진 해시태그 ID 추출
-    const existingHashtagIds = user.Hashtags.map((tag) => tag.id);
+    const existingHashtagIds = user.Hashtags.map((hashtag) => hashtag.id);
     console.log('Existing Hashtags:', existingHashtagIds);
 
     // 중복되지 않은 새로운 해시태그 ID 필터링
-    const newHashtagIds = hashtag.filter((id) => !existingHashtagIds.includes(id));
+    const newHashtagIds = hashtags.filter((id) => !existingHashtagIds.includes(id));
     console.log('New Hashtags to add:', newHashtagIds);
 
     // 유저가 가진 해시태그 수 + 새로운 해시태그 수가 5개를 초과하는지 검증
@@ -151,17 +146,10 @@ exports.userHashtagAdd = async (req, res) => {
       });
     }
 
-    // 새로운 해시태그 조회 또는 생성
-    const hashtagsToAdd = await Promise.all(
-      newHashtagIds.map(async (id) => {
-        const existingTag = await Hashtag.findOne({ where: { id } });
-        if (!existingTag) {
-          // 해시태그가 존재하지 않으면 새로 생성
-          return Hashtag.create({ id, name: `hashtag-${id}` });
-        }
-        return existingTag;
-      })
-    );
+    // 새로운 해시태그 조회
+    const hashtagsToAdd = await Hashtag.findAll({
+      where: { id: newHashtagIds },
+    });
 
     console.log('Hashtags found to add:', hashtagsToAdd);
 

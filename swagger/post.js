@@ -10,7 +10,7 @@
  * /post/img:
  *   post:
  *     summary: 이미지 업로드
- *     description: 이미지를 업로드하고, 업로드된 이미지 이름을 반환(100자리 가까이 되는 랜덤 문자열).
+ *     description: 이미지를 업로드하고, 업로드된 이미지 이름을 반환(랜덤 문자열).
  *     tags: [Post]
  *     security:
  *       - bearerAuth: []
@@ -24,7 +24,7 @@
  *               img:
  *                 type: string
  *                 format: binary
- *                 description: 업로드할 이미지 파일 (현재 1개까지만 가능.)
+ *                 description: 업로드할 이미지 파일 (1개까지만 가능.)
  *     responses:
  *       200:
  *         description: 이미지 업로드 성공
@@ -113,7 +113,6 @@
  *                     img:
  *                       type: string
  *                       example: "example12345.png"
-
  *       500:
  *         description: 서버 에러
  * 
@@ -158,7 +157,7 @@
  *                 example: "수정된 내용입니다."
  *               img:
  *                 type: string
- *                 description: 수정할 이미지 URL
+ *                 description: 수정할 이미지 파일
  *                 maxSize: 5MB
  *                 example: "edited_example12345.png"
  *     responses:
