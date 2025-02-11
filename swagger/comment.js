@@ -25,7 +25,7 @@
  *                 type: integer
  *                 description: 게시글 ID
  *                 example: 15
- *               parentId:
+ *               reply_to:
  *                 type: integer
  *                 nullable: true
  *                 description: null일 시 일반 댓글, 다른 숫자일 시 대댓글 처리
