@@ -35,6 +35,7 @@ class Post extends Sequelize.Model {
     db.Post.belongsTo(db.User, { foreignKey: 'userId', targetKey: 'id' });
     db.Post.belongsToMany(db.Hashtag, { through: 'PostHashtag', foreignKey: 'postId' }); // 다대다 관계 설정
     db.Post.hasMany(db.Comment, { foreignKey: 'postId', sourceKey: 'id' });
+    db.Post.hasMany(db.Like, { foreignKey: 'postId', sourceKey: 'id', onDelete: 'CASCADE' });
   }
 }
 

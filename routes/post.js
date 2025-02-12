@@ -2,12 +2,14 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 
-const { getPostWithComments } = require('../controllers/');
+const { getPostWithComments } = require('../controllers/comment');
 const { 
   processImage, 
   afterUploadImage, 
   uploadPost, 
-  updatePost, deletePost} = require('../controllers/post');
+  updatePost, deletePost 
+} = require('../controllers/post');
+const { addPostLike, removePostLike } = require('../controllers/like');
 const { verifyToken } = require('../middlewares');
 
 const router = express.Router();

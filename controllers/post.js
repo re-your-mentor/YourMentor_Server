@@ -49,7 +49,7 @@ exports.uploadPost = async (req, res) => {
     }
 
     const userId = req.user.id;
-    const user = await User.findByPk(userId);3
+    const user = await User.findByPk(userId);
     const userNick = user.nick;
 
     // 게시글 생성
