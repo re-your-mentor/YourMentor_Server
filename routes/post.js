@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 
-const { getPostWithComments } = require('../controllers/comment');
+const { getPostWithComments } = require('../controllers');
 const { 
   processImage, 
   afterUploadImage, 
@@ -14,6 +14,7 @@ const { verifyToken } = require('../middlewares');
 
 const router = express.Router();
 
+// uploads 폴더 생성
 try {
   fs.readdirSync('uploads');
 } catch (error) {
@@ -21,6 +22,7 @@ try {
   fs.mkdirSync('uploads');
 }
 
+// Multer 설정
 const storage = multer.memoryStorage(); // 메모리 저장 (sharp 적용 위해)
 const upload = multer({
   storage,
@@ -35,7 +37,7 @@ const upload2 = multer(); // multer()를 실행해서 인스턴스 생성
 router.post('/', verifyToken, upload2.none(), uploadPost);
 
 // GET /post/:id - 게시글 세부조회 
-router.get('/:id', getPostWithComments);
+router.get('/:id', getPostWithComments); // getPostWithComments가 undefined인지 확인
 
 // PUT /post/:id - 게시글 수정
 router.put('/:id', verifyToken, updatePost);
