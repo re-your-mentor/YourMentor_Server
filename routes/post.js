@@ -12,7 +12,8 @@ const {
 const { addPostLike, removePostLike } = require('../controllers/like');
 const { verifyToken } = require('../middlewares');
 
-const router = express.Router();
+const router = express.Router ({ mergeParams: true }); // 상위 라우트의 params를 병합
+
 
 // uploads 폴더 생성
 try {
@@ -38,6 +39,12 @@ router.post('/', verifyToken, upload2.none(), uploadPost);
 
 // GET /post/:id - 게시글 세부조회 
 router.get('/:id', getPostWithComments); // getPostWithComments가 undefined인지 확인
+
+// PUT /post/:id/like
+router.put('/:postId/like', verifyToken, addPostLike);
+
+// DELETE /post/:id/like
+router.delete('/:postId/like', verifyToken, removePostLike);
 
 // PUT /post/:id - 게시글 수정
 router.put('/:id', verifyToken, updatePost);

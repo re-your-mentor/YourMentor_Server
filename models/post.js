@@ -11,6 +11,10 @@ class Post extends Sequelize.Model {
         type: Sequelize.STRING(2000),
         allowNull: false,
       },
+      likeCount: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+      },
       img: {
         type: Sequelize.STRING(200),
         allowNull: true,
@@ -25,7 +29,7 @@ class Post extends Sequelize.Model {
       underscored: false,
       modelName: 'Post',
       tableName: 'posts',
-      paranoid: true,
+      paranoid: false,
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
     });
