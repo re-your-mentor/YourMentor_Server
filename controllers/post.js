@@ -2,7 +2,8 @@ const sharp = require('sharp');
 const path = require('path');
 const crypto = require('crypto');
 const Sequelize = require('sequelize');
-const { Post, Hashtag, User } = require('../models');
+const fs = require('fs');
+const { Post, Hashtag, User, Like } = require('../models');
 
 // 이미지 업로드 후 URL을 반환하는 컨트롤러 함수
 exports.afterUploadImage = (req, res) => {
@@ -17,7 +18,6 @@ exports.afterUploadImage = (req, res) => {
   }
 };
 
-// 2️⃣ 이미지 처리 미들웨어 (sharp 사용하여 자동 압축 & 저장)
 exports.processImage = async (req, res, next) => {
   if (!req.file) return next(); // 파일 없으면 패스
 
@@ -28,6 +28,7 @@ exports.processImage = async (req, res, next) => {
     const filePath = path.join(__dirname, '..', 'uploads', fileName);
 
     await sharp(req.file.buffer)
+      .rotate() // EXIF 데이터를 기반으로 자동 회전 적용
       .resize({ width: 800 }) // 최대 너비 800px로 조정
       .jpeg({ quality: 70 }) // JPEG 변환 & 품질 70%
       .toFile(filePath); // 저장
@@ -39,7 +40,7 @@ exports.processImage = async (req, res, next) => {
     console.error('이미지 처리 중 오류 발생:', error);
     return res.status(500).json({ error: '이미지 처리 실패' });
   }
-}
+};
 
 exports.uploadPost = async (req, res) => {
   try {
@@ -146,7 +147,10 @@ exports.updatePost = async (req, res) => {
 // 게시글 삭제
 exports.deletePost = async (req, res) => {
   try {
-    const post = await Post.findOne({ where: { id: req.params.id } });
+    const postId = req.params.id;
+
+    // 게시글 조회
+    const post = await Post.findOne({ where: { id: postId } });
 
     if (!post) {
       return res.status(404).json({ success: false, message: '삭제할 게시글을 찾을 수 없습니다.' });
@@ -161,7 +165,22 @@ exports.deletePost = async (req, res) => {
       return res.status(403).json({ success: false, message: '게시글 삭제 권한이 없습니다.' });
     }
 
+    // 1. 해당 게시글의 모든 좋아요 삭제
+    await Like.destroy({ where: { postId } });
+
+    if (post.img) {
+      const imagePath = path.join(__dirname, '..', 'uploads', post.img); // 이미지 파일 경로
+      if (fs.existsSync(imagePath)) { // 파일이 존재하는지 확인
+        fs.unlinkSync(imagePath); // 파일 삭제
+        console.log(`이미지 파일 삭제됨: ${post.img}`);
+      } else {
+        console.log(`이미지 파일을 찾을 수 없음: ${post.img}`);
+      }
+    }
+
+    // 2. 게시글 삭제
     await post.destroy();
+
     res.json({ success: true, message: '게시글이 성공적으로 삭제되었습니다.' });
   } catch (error) {
     console.error(error);

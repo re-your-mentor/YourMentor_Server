@@ -1,48 +1,54 @@
-const { 
+const {
   User,
-  Post, 
-  Hashtag, 
-  Comment } = require('../models'); // User, Post, Hashtag 모델을 가져옴
+  Post,
+  Hashtag,
+  Comment 
+} = require('../models');
+const Sequelize = require('sequelize');
 
 exports.renderMain = async (req, res) => {
   try {
-    // 모든 게시글 조회 (작성자 정보 및 해시태그 포함)
-    const posts = await Post.findAll({
+    let page = parseInt(req.query.page) || 1;
+    let pageSize = parseInt(req.query.pageSize) || 10;
+    let sort = req.query.sort || 'latest';
+
+    if (page < 1) page = 1;
+    pageSize = Math.min(pageSize, 50);
+
+    let order = [['createdAt', 'DESC']]; // 기본 최신순 정렬
+
+    // 좋아요 수 기준 정렬 처리
+    const includeLikes = [
+      Sequelize.literal('(SELECT COUNT(*) FROM likes WHERE likes.postId = Post.id)'),
+      'likesCount',
+    ];
+
+    if (sort === 'popular') {
+      order = [[Sequelize.literal('likesCount'), 'DESC']]; // 인기순 정렬
+    }
+
+    // 게시글 조회
+    const { count, rows: posts } = await Post.findAndCountAll({
       include: [
         { model: User, attributes: ['id', 'nick'] },
-        { model: Hashtag, attributes: ['id', 'name'], through: { attributes: [] } }, // 해시태그 정보 포함
+        { model: Hashtag, attributes: ['id', 'name'], through: { attributes: [] } },
       ],
+      attributes: {
+        include: [includeLikes], // 좋아요 개수 추가
+      },
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+      order,
+      subQuery: false, // ORDER BY에서 likesCount를 사용 가능하게 설정
     });
 
-    // posts가 null 또는 undefined인 경우 빈 배열로 초기화
-    const safePosts = posts || [];
-
-    // 게시글 데이터 포맷
-    const postData = safePosts.map(post => {
-      if (!post || !post.User) return null; // post 또는 post.User가 null이면 null 반환
-      return {
-        id: post.id,
-        title: post.title,
-        content: post.content,
-        img: post.img,
-        createdAt: post.createdAt,
-        user: {
-          id: post.User.id,
-          nick: post.User.nick,
-        },
-        hashtags: post.Hashtags.map(hashtag => ({ // 해시태그 정보 추가
-          id: hashtag.id,
-          name: hashtag.name,
-        })),
-      };
-    }).filter(post => post !== null); // null인 요소 제거
-
-    res.status(200).json(postData); // 데이터 반환
+    res.status(200).json({ count, posts });
   } catch (error) {
     console.error('Error fetching posts:', error);
     res.status(500).json({ message: 'Error fetching posts' });
   }
 };
+
 
 
 // 해시태그 검색 결과 반환
@@ -59,8 +65,10 @@ exports.renderHashtag = async (req, res, next) => {
       posts = await hashtag.getPosts({
         include: [
           { model: User, attributes: ['id', 'nick'] },
-          { model: Hashtag, attributes: ['id', 'name'], 
-            through: { attributes: [] } }, // 해시태그 정보 포함
+          {
+            model: Hashtag, attributes: ['id', 'name'],
+            through: { attributes: [] }
+          }, // 해시태그 정보 포함
         ],
       });
     }
@@ -132,7 +140,7 @@ exports.uploadPost = async (req, res) => {
 
     // 3️⃣ 저장된 해시태그 포함하여 다시 조회
     const fullPost = await Post.findByPk(post.id, {
-      include: [{ 
+      include: [{
         model: Hashtag,
         through: { attributes: [] }, // 중간 테이블 필드 제외
       }],
@@ -156,10 +164,14 @@ exports.getPostWithComments = async (req, res, next) => {
       where: { id },
       include: [
         { model: User, attributes: ['id', 'nick', 'profile_pic'] },
-        { model: Comment, include: 
-          [{ model: User, attributes: ['id', 'nick'] }], required: false },
-        { model: Hashtag, attributes: ['id', 'name'], 
-          through: { attributes: [] } }, // 해시태그 정보 포함
+        {
+          model: Comment, include:
+            [{ model: User, attributes: ['id', 'nick'] }], required: false
+        },
+        {
+          model: Hashtag, attributes: ['id', 'name'],
+          through: { attributes: [] }
+        }, // 해시태그 정보 포함
       ],
     });
 

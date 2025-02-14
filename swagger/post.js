@@ -391,3 +391,75 @@
  *       name: "Authorization"
  *       description: "Bearer token을 통해 인증합니다."
  */
+
+/**
+ * @swagger
+ * /post/{postId}/like:
+ *   put:
+ *     summary: 게시글 좋아요
+ *     description: 특정 게시글에 좋아요를 달아줍니다.
+ *     tags: [Post]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 좋아요를 달아줄 게시글의 ID
+ *     responses:
+ *       201:
+ *         description: 게시글 수
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: String
+ *                   example: "좋아요 추가됨"
+ *       403:
+ *         description: 권한 없음 (작성자가 아님)
+ *       404:
+ *         description: 게시글을 찾을 수 없음
+ *       500:
+ *         description: 서버 에러
+ *  
+ *   delete:
+ *     summary: 게시글 좋아요 삭제
+ *     description: 특정 게시글의 좋아요를 삭제합니다.
+ *     tags: [Post]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 좋아요를 취소할 게시글의 ID
+ *     responses:
+ *       200:
+ *         description: 게시글 좋아요 취소 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "좋아요 삭제됨"
+ *       403:
+ *         description: 권한 없음 (작성자가 아님)
+ *       404:
+ *         description: 게시글을 찾을 수 없음
+ *       500:
+ *         description: 서버 에러
+ *   securityDefinitions:
+ *     bearerAuth:
+ *       type: "apiKey"
+ *       in: "header"
+ *       name: "Authorization"
+ *       description: "Bearer token을 통해 인증합니다."
+ */
