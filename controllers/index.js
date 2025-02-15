@@ -20,7 +20,7 @@ exports.renderMain = async (req, res) => {
     // 좋아요 수 기준 정렬 처리
     const includeLikes = [
       Sequelize.literal('(SELECT COUNT(*) FROM likes WHERE likes.postId = Post.id)'),
-      'likesCount',
+      'likesCount', // likesCount만 정의
     ];
 
     if (sort === 'popular') {
@@ -34,7 +34,7 @@ exports.renderMain = async (req, res) => {
         { model: Hashtag, attributes: ['id', 'name'], through: { attributes: [] } },
       ],
       attributes: {
-        include: [includeLikes], // 좋아요 개수 추가
+        include: [includeLikes], // likesCount만 포함
       },
       limit: pageSize,
       offset: (page - 1) * pageSize,
@@ -48,9 +48,6 @@ exports.renderMain = async (req, res) => {
     res.status(500).json({ message: 'Error fetching posts' });
   }
 };
-
-
-
 // 해시태그 검색 결과 반환
 exports.renderHashtag = async (req, res, next) => {
   const query = req.query.hashtag;

@@ -123,15 +123,37 @@
  * /user/profile/{userId}:
  *   get:
  *     summary: 유저 정보 조회
- *     description: 특정 유저의 정보와 게시글 조회.
+ *     description: 특정 유저의 정보와 게시글을 조회합니다. 페이징 및 정렬 기능을 제공합니다.
  *     tags: [user]
  *     parameters:
- *       - name: id(userId)
+ *       - name: userId
  *         in: path
  *         description: 조회할 유저의 ID
  *         required: true
  *         schema:
  *           type: integer
+ *           example: 1
+ *       - name: page
+ *         in: query
+ *         description: 페이지 번호 
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *       - name: pageSize
+ *         in: query
+ *         description: 페이지당 게시글 수 
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *       - name: sort
+ *         in: query
+ *         description: 정렬 기준 
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: latest
  *     responses:
  *       200:
  *         description: 유저 정보 조회 성공
@@ -140,41 +162,75 @@
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
- *                   example: 1
- *                 email:
+ *                 profile_pic:
  *                   type: string
- *                   example: user@example.com
+ *                   example: default_profile_pic.jpg
  *                 nick:
  *                   type: string
  *                   example: userNick
- *                 provider:
+ *                 email:
+ *                    type: String
+ *                    example: "example@gmail.com"
+ *                 createdAt:
  *                   type: string
- *                   example: kakao
- *                 snsId:
- *                   type: string
- *                   example: sns12345
+ *                   example: "2024-01-01T00:00:00Z"
+ *                 hashtags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       name:
+ *                         type: string
+ *                         example: hashtag1
  *                 posts:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       user_nick:
- *                         type: string
- *                         example: userNick
  *                       id:
  *                         type: integer
  *                         example: 1
  *                       content:
  *                         type: string
- *                         example: Post content example
- *                       img:
- *                         type: string
- *                         example: /img/sample.jpg
+ *                         example: This is a post content.
+ *                       views:
+ *                         type: integer
+ *                         example: 100
+ *                       likesCount:
+ *                         type: integer
+ *                         example: 10
+ *                       hashtags:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 1
+ *                             name:
+ *                               type: string
+ *                               example: hashtag1
  *                       createdAt:
  *                         type: string
- *                         example: 2024-11-28T12:00:00Z
+ *                         example: 2024-01-01T00:00:00Z
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       example: 100
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 10
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     pageSize:
+ *                       type: integer
+ *                       example: 10
  *       404:
  *         description: 유저를 찾을 수 없음
  *         content:
@@ -194,7 +250,10 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Error fetching user information
+ *                   example: Error getting user information
+ *                 error:
+ *                   type: string
+ *                   example: Error details...
  */
 
 /**

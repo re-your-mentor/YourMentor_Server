@@ -10,6 +10,6 @@ const {
 router.post('/', verifyToken, createComment);
 
 // DELETE /comment/{commentId}
-router.put('/:commentId', verifyToken, deleteComment);
+router.delete('/:id', verifyToken, deleteComment);
 
 module.exports = router;

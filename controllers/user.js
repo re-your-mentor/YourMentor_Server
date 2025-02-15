@@ -6,6 +6,7 @@ const {
   Room, 
   Hashtag 
 } = require('../models');
+const Sequelize = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcrypt');
@@ -84,31 +85,91 @@ exports.updateUserProfile = async (req, res) => {
 // 유저 정보 조회 (Read)
 exports.getUserInfo = async (req, res) => {
   const { userId } = req.params;
+  const { page = 1, pageSize = 10, sort = 'latest' } = req.query;
 
   try {
-    console.log('getUserInfo');
-    // 유저 정보, 작성한 게시글 조회
+    // 페이지네이션 설정
+    const parsedPage = Math.max(1, parseInt(page));
+    const parsedPageSize = Math.min(parseInt(pageSize) || 10, 50);
+    const offset = (parsedPage - 1) * parsedPageSize;
+
+    // 정렬 조건 설정
+    let order;
+    switch(sort) {
+      case 'popular':
+        order = [[Sequelize.literal('(SELECT COUNT(*) FROM likes WHERE likes.postId = Post.id)'), 'DESC']];
+        break;
+      case 'views':
+        order = [['views', 'DESC']];
+        break;
+      default:
+        order = [['createdAt', 'DESC']];
+    }
+
+    // 유저 기본 정보 + 연결된 해시태그 조회
     const user = await User.findByPk(userId, {
-      attributes: { exclude: ['password'] }, // 비밀번호 제외
-      include: [{ model: Post, as: 'Posts' }] // Posts 포함
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Hashtag,
+        as: 'Hashtags', // 사용자가 선택한 해시태그 (관계 설정 필요)
+        through: { attributes: [] }, // 연결 테이블 필드 제외
+        attributes: ['id', 'name']
+      }]
     });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // 유저가 작성한 게시글 조회 (해시태그 포함)
+    const { count, rows: posts } = await Post.findAndCountAll({
+      where: { userId },
+      include: [{
+        model: Hashtag,
+        through: { attributes: [] }, // 연결 테이블 필드 제외
+        attributes: ['id', 'name']
+      }],
+      attributes: {
+        include: [
+          [Sequelize.literal('(SELECT COUNT(*) FROM likes WHERE likes.postId = Post.id)'), 'likesCount']
+        ]
+      },
+      order,
+      limit: parsedPageSize,
+      offset: offset,
+      subQuery: false
+    });
+
     // 응답 데이터 포맷
     const responseData = {
       profile_pic: user.profile_pic,
       nick: user.nick,
+      email: user.email,
       createdAt: user.createdAt,
-      posts: user.Posts || [], // Posts가 없을 경우 빈 배열 반환
+      hashtags: user.Hashtags.map(tag => ({ // 사용자 해시태그
+        id: tag.id,
+        name: tag.name
+      })),
+      posts: posts.map(post => ({ // 게시글 목록
+        id: post.id,
+        content: post.content,
+        views: post.views,
+        likesCount: post.get('likesCount'),
+        hashtags: post.Hashtags,
+        createdAt: post.createdAt
+      })),
+      pagination: {
+        totalItems: count,
+        totalPages: Math.ceil(count / parsedPageSize),
+        currentPage: parsedPage,
+        pageSize: parsedPageSize
+      }
     };
 
-    res.status(200).json(responseData); // 데이터 반환
+    res.status(200).json(responseData);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error get user information' });
+    console.error('Error getting user info:', error);
+    res.status(500).json({ message: 'Error getting user information', error });
   }
 };
 

@@ -11,10 +11,6 @@ class Post extends Sequelize.Model {
         type: Sequelize.STRING(2000),
         allowNull: false,
       },
-      likeCount: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
-      },
       img: {
         type: Sequelize.STRING(200),
         allowNull: true,
