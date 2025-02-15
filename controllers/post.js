@@ -1,46 +1,7 @@
-const sharp = require('sharp');
 const path = require('path');
-const crypto = require('crypto');
 const Sequelize = require('sequelize');
 const fs = require('fs');
 const { Post, Hashtag, User, Like } = require('../models');
-
-// 이미지 업로드 후 URL을 반환하는 컨트롤러 함수
-exports.afterUploadImage = (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: '업로드한 파일이 존재하지 않습니다.' });
-    }
-    res.json({ success: true, img: `${req.file.filename}` });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: '이미지 업로드 처리 중 오류가 발생했습니다.' });
-  }
-};
-
-exports.processImage = async (req, res, next) => {
-  if (!req.file) return next(); // 파일 없으면 패스
-
-  try {
-    const fileExt = path.extname(req.file.originalname); // 확장자 추출
-    const randomName = crypto.randomBytes(10).toString('hex'); // 랜덤 파일명
-    const fileName = `${randomName}${fileExt}`;
-    const filePath = path.join(__dirname, '..', 'uploads', fileName);
-
-    await sharp(req.file.buffer)
-      .rotate() // EXIF 데이터를 기반으로 자동 회전 적용
-      .resize({ width: 800 }) // 최대 너비 800px로 조정
-      .jpeg({ quality: 70 }) // JPEG 변환 & 품질 70%
-      .toFile(filePath); // 저장
-
-    req.file.filename = fileName; // 저장된 파일명 추가
-    req.file.path = filePath; // 경로 추가
-    next();
-  } catch (error) {
-    console.error('이미지 처리 중 오류 발생:', error);
-    return res.status(500).json({ error: '이미지 처리 실패' });
-  }
-};
 
 exports.uploadPost = async (req, res) => {
   try {
@@ -90,6 +51,74 @@ exports.uploadPost = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: '게시글 업로드 중 오류가 발생했습니다.' });
+  }
+};
+
+// 게시물 세부 조회 ( 게시글 + 댓글 )
+exports.getPostWithComments = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const post = await Post.findOne({
+      where: { id },
+      include: [
+        { model: User, attributes: ['id', 'nick', 'profile_pic'] },
+        {
+          model: Comment, include:
+            [{ model: User, attributes: ['id', 'nick'] }], required: false
+        },
+        {
+          model: Hashtag, attributes: ['id', 'name'],
+          through: { attributes: [] }
+        }, // 해시태그 정보 포함
+      ],
+    });
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      post: {
+        user_nick: post.User.nick,
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        img: post.img,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        user: {
+          id: post.User.id,
+          nick: post.User.nick,
+          img: post.User.profile_pic,
+        },
+        hashtags: post.Hashtags.map(hashtag => ({ // 해시태그 정보 추가
+          id: hashtag.id,
+          name: hashtag.name,
+        })),
+        comments: post.Comments.map(comment => ({
+          id: comment.id,
+          reply_to: comment.reply_to,
+          comment_nick: comment.post_nick,
+          content: comment.content,
+          createdAt: comment.createdAt,
+          user: {
+            id: comment.User.id,
+            nick: comment.User.nick,
+          },
+        })),
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching post with comments:', err.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch post',
+    });
   }
 };
 

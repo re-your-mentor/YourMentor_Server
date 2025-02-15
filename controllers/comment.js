@@ -43,38 +43,39 @@ exports.createComment = async (req, res) => {
   }
 };
 
-// 특정 게시글의 댓글 조회
-exports.getCommentsByPostId = async (req, res) => {
-  const { postId } = req.params;
+exports.deleteComment = async (req, res) => {
+  const { id } = req.params; // 삭제할 댓글 ID
+  const userId = req.user.id; // 현재 로그인한 사용자 ID
 
   try {
-    const comments = await Comment.findAll({
-      where: { postId, reply_to: null },
-      include: [
-        {
-          model: Comment,
-          as: 'Replies',
-          include: [
-            {
-              model: User,
-              attributes: ['id', 'nick'],
-            },
-          ],
-        },
-        {
-          model: User,
-          attributes: ['id', 'nick'],
-        },
-      ],
-      order: [['createdAt', 'ASC']],
-    });
+    // 삭제할 댓글 조회
+    const comment = await Comment.findByPk(id);
 
-    res.status(200).json({
-      message: 'Comments fetched successfully!',
-      comments,
-    });
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found.' });
+    }
+
+    // 댓글 작성자와 현재 사용자가 일치하는지 확인
+    if (comment.userId !== userId) {
+      return res.status(403).json({ message: 'You do not have permission to delete this comment.' });
+    }
+
+    // 부모 댓글인 경우 (reply_to가 null인 경우)
+    if (comment.reply_to === null) {
+      // 해당 댓글에 달린 모든 대댓글 삭제
+      await Comment.destroy({
+        where: {
+          reply_to: comment.id, // 부모 댓글의 ID를 참조하는 대댓글들
+        },
+      });
+    }
+
+    // 댓글 삭제
+    await comment.destroy();
+
+    res.status(200).json({ message: 'Comment and its replies deleted successfully!' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Failed to fetch comments.', error });
+    res.status(500).json({ message: 'Failed to delete comment.', error });
   }
 };

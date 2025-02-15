@@ -4,14 +4,17 @@ const {
   Comment, 
   Message, 
   Room, 
-  Hashtag } = require('../models');
+  Hashtag 
+} = require('../models');
+const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcrypt');
-const { sync } = require('../models/hashtag');
 
 // 유저 정보 수정 (닉네임 및 비밀번호)
 exports.updateUserNick = async (req, res) => {
-  const { user_nick, userId } = req.body; // 요청 본문에서 닉네임, 비밀번호, userId 추출
-  const nick = user_nick;
+  const userId = req.user.id;
+  const { user_nick } = req.body; // 요청 본문에서 닉네임 추출
+  const edit_nick = user_nick;
 
   try {
     const user = await User.findByPk(userId); // 유저 조회
@@ -19,25 +22,64 @@ exports.updateUserNick = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-  
     // 닉네임이 있을 경우 닉네임 수정
     if (nick) {
-      user.nick = nick;
+      user.nick = edit_nick;
     }
 
     await user.save(); // 변경 사항 저장
-    res.status(200).json({ message: 'User information updated successfully' });
+    res.status(200).json({ message: '유저 닉네임이 정상적으로 수정되었습니다' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error updating user information' });
+    res.status(500).json({ message: '닉네임 업로드 중 에러가 발생했습니다' });
   }
 };
 
 // 유저 정보 수정 (프로필 사진)
 exports.updateUserProfile = async (req, res) => {
-  const { userId,   } = req.body; // 요청 본문에서 닉네임과 비밀번호 추출
-}
+  const userId = req.user.id; // 토큰에서 userId 가져오기
+  const { profile_pic } = req.body; // 요청 본문에서 사진 파일명 받기
 
+  try {
+    if (!profile_pic) {
+      return res.status(400).json({ success: false, message: '프로필 이미지 파일명을 입력하세요.' });
+    }
+
+    // 사용자 조회 (소프트 삭제된 유저 제외)
+    const user = await User.findOne({ where: { id: userId } });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // 업로드 폴더 경로 설정
+    const uploadDir = path.join(__dirname, '..', 'upload'); // 'upload' 폴더의 경로
+    const filePath = path.join(uploadDir, profile_pic); // 파일의 전체 경로
+
+    console.log(uploadDir)
+    console.log(filePath)
+
+    // 'upload' 폴더가 없으면 생성
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // 파일 존재 여부 확인
+    if (fs.existsSync(filePath)) {
+      console.log('파일 경로:', filePath); // 파일 경로 로깅
+      return res.status(400).json({ success: false, message: '프로필 이미지 파일이 존재하지 않습니다.' });
+    }
+
+    // 프로필 이미지 URL 업데이트
+    user.profile_pic = profile_pic;
+    await user.save();
+
+    res.json({ success: true, message: '프로필 이미지가 업데이트되었습니다.', profile_pic });
+  } catch (error) {
+    console.error('프로필 업데이트 오류:', error);
+    res.status(500).json({ success: false, message: '프로필 업데이트 중 오류 발생' });
+  }
+};
 
 // 유저 정보 조회 (Read)
 exports.getUserInfo = async (req, res) => {

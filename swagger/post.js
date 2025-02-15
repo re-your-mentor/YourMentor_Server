@@ -7,30 +7,6 @@
 
 /**
  * @swagger
- * /img/{image_file_name}:
- *   get:
- *     summary: 업로드된 사진파일 조회
- *     description: 업로드한 사진을 서버로부터 전송받습니다.
- *     parameters:
- *       - name: no specific name
- *         in: path
- *         description: 업로드된 이미지 파일 + 확장자
- *         required: true
- *         schema:
- *           type: String
- *     responses:
- *       200:
- *         description: 성공 시 정상적으로 사진파일 확인 가능.
- *         content:
- *           application/json:
- *             schema:
- *               type: file
- *       500:
- *         description: 서버 에러
- */
-
-/**
- * @swagger
  * /post:
  *   post:
  *     summary: 게시글 작성

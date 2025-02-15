@@ -102,23 +102,26 @@
 
 /**
  * @swagger
- * post/{postId}/comment/del/{commentId}:
+ * /comment/{id}:
  *   delete:
  *     summary: 댓글 삭제
- *     description: 자신의 댓글을 삭제합니다. 일반 댓글(부모 댓글)이 삭제될 시(parentId == null 인것이 부모) 대댓글(자식 댓글) 까지 같이 삭제함.
+ *     description: |
+ *       자신의 댓글을 삭제합니다.
+ *       - 일반 댓글(부모 댓글, reply_to = null) 삭제 시, 해당 댓글에 달린 모든 대댓글도 함께 삭제됩니다.
+ *       - 대댓글(자식 댓글)은 단독으로 삭제됩니다.
  *     tags: [Comment]
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: commentId
+ *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         description: 댓글 ID
+ *         description: 삭제할 댓글 ID
  *     responses:
  *       200:
- *         description: 댓글 삭제 성공
+ *         description: 댓글 및 대댓글 삭제 성공
  *         content:
  *           application/json:
  *             schema:
@@ -126,11 +129,33 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Comment deleted successfully"
+ *                   example: "Comment and its replies deleted successfully!"
  *       403:
- *         description: 권한 없음 (작성자가 아님)
+ *         description: 권한 없음 (작성자 불일치)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "You do not have permission to delete this comment."
  *       404:
  *         description: 댓글을 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Comment not found." 
  *       500:
  *         description: 서버 에러
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
  */

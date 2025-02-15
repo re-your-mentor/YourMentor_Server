@@ -4,6 +4,7 @@
  *   get:
  *     summary: "메인 페이지의 게시글 목록 가져오기"
  *     description: "페이지네이션과 정렬 기능을 포함한 최신/인기 게시글 목록을 가져옵니다."
+ *     tags: [search]
  *     parameters:
  *       - in: query
  *         name: page
@@ -104,6 +105,7 @@
  *   get:
  *     summary: "해시태그로 검색된 게시글 가져오기"
  *     description: "특정 해시태그로 검색된 게시글을 가져옵니다."
+ *     tags: [search]
  *     parameters:
  *       - name: hashtag
  *         in: query
@@ -153,4 +155,79 @@
  *         description: "해시태그 파라미터가 누락됨"
  *       500:
  *         description: "서버 오류 발생"
+ */
+
+/**
+ * @swagger
+ * /img/{image_file_name}:
+ *   get:
+ *     summary: 업로드된 사진파일 조회
+ *     description: 업로드한 사진을 서버로부터 전송받습니다.
+ *     tags: [image]
+ *     parameters:
+ *       - name: no specific name
+ *         in: path
+ *         description: 업로드된 이미지 파일 + 확장자
+ *         required: true
+ *         schema:
+ *           type: String
+ *     responses:
+ *       200:
+ *         description: 성공 시 정상적으로 사진파일 확인 가능.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: file
+ *       500:
+ *         description: 서버 에러
+ */
+
+
+/**
+ * @swagger
+ * /upload/img:
+ *   post:
+ *     summary: 이미지 업로드
+ *     description: 사진을 서버에 전송합니다.
+ *     tags: [image]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               hashtags:
+ *                 type: array
+ *                 description: 해시태그 ID 배열
+ *                 items:
+ *                   type: integer
+ *                 example: [1]
+ *     responses:
+ *       200:
+ *         description: 사진 업로드 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 post:
+ *                   type: object
+ *                   properties:
+ *                     img:
+ *                       type: String
+ *                       example: "exampleImage.jpg"
+ *       500:
+ *         description: 서버 에러
+ *   securityDefinitions:
+ *     bearerAuth:
+ *     type: "apiKey"
+ *     in: "header"
+ *     name: "Authorization"
+ *     description: "Bearer token을 통해 인증합니다."
  */
