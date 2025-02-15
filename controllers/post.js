@@ -1,7 +1,7 @@
 const path = require('path');
 const Sequelize = require('sequelize');
 const fs = require('fs');
-const { Post, Hashtag, User, Like } = require('../models');
+const { Post, Hashtag, User, Like, Comment } = require('../models');
 
 exports.uploadPost = async (req, res) => {
   try {
