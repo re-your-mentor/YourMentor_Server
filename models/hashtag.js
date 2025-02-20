@@ -23,6 +23,7 @@ class Hashtag extends Sequelize.Model {
   static associate(db) {
     db.Hashtag.belongsToMany(db.User, { through: 'UserHashtag', foreignKey: 'hashtagId' }); // 유저와의 다대다 관계
     db.Hashtag.belongsToMany(db.Post, { through: 'PostHashtag', foreignKey: 'hashtagId' }); // 포스트와의 다대다 관계
+    db.Post.belongsToMany(db.Hashtag, { through: 'ChatroomHashtag', foreignKey: 'hashtagId' }); // 채팅방과의 다대다 관계
   }
 };
 

@@ -20,6 +20,10 @@ class User extends Sequelize.Model {
         type: Sequelize.STRING(500),
         defaultValue: "default_profile_pic.jpg"
       },
+      hasRoom: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
       provider: {
         type: Sequelize.ENUM('local', 'kakao', 'google'),
         allowNull: false,

@@ -30,6 +30,7 @@ class Room extends Sequelize.Model {
   static associate(db) {
     db.Room.belongsTo(db.User, { foreignKey: 'userId' }); // 한 방에는 하나의 유저가 생성자 역할
     db.Room.hasMany(db.Message, { foreignKey: 'roomId' }); // 하나의 방에는 여러 메시지가 있을 수 있음
+    db.Post.belongsToMany(db.Hashtag, { through: 'ChatroomHashtag', foreignKey: 'roomId' });
   }
 };
 

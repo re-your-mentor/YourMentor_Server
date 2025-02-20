@@ -28,9 +28,9 @@ const authRouter = require('./routes/auth');
 const postRouter = require('./routes/post');
 const userRouter = require('./routes/user');
 const commentRouter = require('./routes/comment');
+const chatRouter = require('./routes/chat');
 const passportConfig = require('./passport');
 const logger = require('./logger');
-const chatRouter = require('./routes/socket');
 
 const sessionOption = {
   resave: false,

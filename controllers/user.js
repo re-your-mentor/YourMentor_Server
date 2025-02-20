@@ -22,12 +22,7 @@ exports.updateUserNick = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // 닉네임이 있을 경우 닉네임 수정
-    if (nick) {
-      user.nick = edit_nick;
-    }
-
+    
     await user.save(); // 변경 사항 저장
     res.status(200).json({ message: '유저 닉네임이 정상적으로 수정되었습니다' });
   } catch (error) {
@@ -152,7 +147,9 @@ exports.getUserInfo = async (req, res) => {
       })),
       posts: posts.map(post => ({ // 게시글 목록
         id: post.id,
+        title: post.title,
         content: post.content,
+        img: post.img,
         views: post.views,
         likesCount: post.get('likesCount'),
         hashtags: post.Hashtags,

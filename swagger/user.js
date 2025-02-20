@@ -299,7 +299,7 @@
  *     description: "Bearer token을 통해 인증합니다."
  */
 
-
+// 유저 해시테그 추가
 /**
  * @swagger
  * /user/tag:
@@ -319,7 +319,7 @@
  *               userId:
  *                 type: integer
  *                 description: 유저 아이디
- *               hashtag:
+ *               hashtags:
  *                 type: array
  *                 description: 헤시테그의 숫자를 배열로 받습니다.
  *                 items:

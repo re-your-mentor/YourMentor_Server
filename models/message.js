@@ -6,15 +6,7 @@ class Message extends Sequelize.Model {
       content: {
         type: Sequelize.STRING(300),
         allowNull: false,
-      },
-      userId: { // 외래키 userId를 명시적으로 추가
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      roomId: { // 외래키 roomId를 명시적으로 추가
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
+      }
     }, {
       sequelize,
       timestamps: true,
