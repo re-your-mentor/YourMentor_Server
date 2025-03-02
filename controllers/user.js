@@ -139,6 +139,7 @@ exports.getUserInfo = async (req, res) => {
 
     // 응답 데이터 포맷
     const responseData = {
+      user_id: user.id,
       profile_pic: user.profile_pic,
       nick: user.nick,
       email: user.email,

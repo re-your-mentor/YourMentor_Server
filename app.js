@@ -103,7 +103,7 @@ app.use('/auth', authRouter);
 app.use('/post', postRouter);
 app.use('/user', userRouter);
 app.use('/comment', commentRouter);
-app.use('/chat', chatRouter);
+//app.use('/chat', chatRouter);
 
 /**
  * 파라미터 변수 뜻
@@ -146,5 +146,5 @@ const server = app.listen(app.get('port'), () => {
 //   console.log(`Server running on port ${app.get('port')}`);
 // });
 
-const io = require('socket.io')(server);
-setupSockets(io);
+// const io = require('socket.io')(server);
+// setupSockets(io);

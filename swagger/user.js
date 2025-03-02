@@ -14,10 +14,7 @@
  *           schema:
  *             type: object
  *             properties:
- *               userId:
- *                 type: Integer
- *                 description: 유저 아이디
- *               user_nick:
+ *               edit_nick:
  *                 type: String
  *                 description: "바뀐 유저 닉네임"
  *     responses:
