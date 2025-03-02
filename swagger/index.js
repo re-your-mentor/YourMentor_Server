@@ -187,7 +187,7 @@
  * @swagger
  * /upload/img:
  *   post:
- *     summary: 이미지 업로드
+ *     summary: 이미지 업로드 (토큰 필요)
  *     description: 사진을 서버에 전송합니다.
  *     tags: [image]
  *     security:

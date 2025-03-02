@@ -9,7 +9,7 @@
  * @swagger
  * /comment:
  *   post:
- *     summary: 댓글 생성
+ *     summary: 댓글 생성 (토큰 필요)
  *     description: 게시글에 댓글을 추가합니다. (일반 댓글 또는 대댓글)
  *     tags: [Comment]
  *     security:
@@ -104,7 +104,7 @@
  * @swagger
  * /comment/{id}:
  *   delete:
- *     summary: 댓글 삭제
+ *     summary: 댓글 삭제 (토큰 필요)
  *     description: |
  *       자신의 댓글을 삭제합니다.
  *       - 일반 댓글(부모 댓글, reply_to = null) 삭제 시, 해당 댓글에 달린 모든 대댓글도 함께 삭제됩니다.

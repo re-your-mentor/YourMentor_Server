@@ -9,7 +9,7 @@
  * @swagger
  * /post:
  *   post:
- *     summary: 게시글 작성
+ *     summary: 게시글 작성 (토큰 필요)
  *     description: 게시글을 작성하고 생성된 게시글 정보를 반환합니다.
  *     tags: [Post]
  *     security:
@@ -105,12 +105,6 @@
  *                             example: "2025-02-04T11:20:32.000Z"
  *       500:
  *         description: 서버 에러
- *   securityDefinitions:
- *     bearerAuth:
- *     type: "apiKey"
- *     in: "header"
- *     name: "Authorization"
- *     description: "Bearer token을 통해 인증합니다."
  */
 
 /**
@@ -225,7 +219,7 @@
  * @swagger
  * /post/{id}:
  *   put:
- *     summary: 게시글 수정
+ *     summary: 게시글 수정 (토큰 필요)
  *     description: 특정 게시글의 내용을 수정합니다.
  *     tags: [Post]
  *     security:
@@ -331,7 +325,7 @@
  *         description: 서버 에러
  *  
  *   delete:
- *     summary: 게시글 삭제
+ *     summary: 게시글 삭제 (토큰 필요)
  *     description: 특정 게시글을 삭제합니다.
  *     tags: [Post]
  *     security:
@@ -372,7 +366,7 @@
  * @swagger
  * /post/{postId}/like:
  *   put:
- *     summary: 게시글 좋아요
+ *     summary: 게시글 좋아요 (토큰 필요)
  *     description: 특정 게시글에 좋아요를 달아줍니다.
  *     tags: [Post]
  *     security:
@@ -403,7 +397,7 @@
  *         description: 서버 에러
  *  
  *   delete:
- *     summary: 게시글 좋아요 삭제
+ *     summary: 게시글 좋아요 삭제 (토큰 필요)
  *     description: 특정 게시글의 좋아요를 삭제합니다.
  *     tags: [Post]
  *     security:

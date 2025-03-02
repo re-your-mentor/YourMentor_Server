@@ -15,6 +15,10 @@ class Room extends Sequelize.Model {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      hasRoom: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
     }, {
       sequelize,
       timestamps: true,

@@ -14,16 +14,18 @@ const bcrypt = require('bcrypt');
 // 유저 정보 수정 (닉네임 및 비밀번호)
 exports.updateUserNick = async (req, res) => {
   const userId = req.user.id;
-  const { user_nick } = req.body; // 요청 본문에서 닉네임 추출
-  const edit_nick = user_nick;
+  const { edit_nick } = req.body; // 요청 본문에서 닉네임 추출
 
   try {
     const user = await User.findByPk(userId); // 유저 조회
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
+    // 닉네임 업데이트
+    user.nick = edit_nick; // 닉네임 필드를 업데이트
     await user.save(); // 변경 사항 저장
+
     res.status(200).json({ message: '유저 닉네임이 정상적으로 수정되었습니다' });
   } catch (error) {
     console.error(error);
@@ -211,7 +213,8 @@ exports.deleteUser = async (req, res) => {
 
 // 헤시테그 추가
 exports.userHashtagAdd = async (req, res) => {
-  const { userId, hashtags } = req.body;
+  const userId = req.user.id;
+  const { hashtags } = req.body;
 
   try {
     // 유저 조회
@@ -275,7 +278,8 @@ exports.userHashtagAdd = async (req, res) => {
 
 
 exports.userHashtagDelete = async (req, res) => {
-  const { userId, hashtagIds } = req.body; // 요청 데이터에서 userId와 삭제할 해시태그 ID 배열 추출
+  const userId = req.user.id; // 요청에서 userId 추출
+  const { hashtags } = req.body; // 요청 본문에서 삭제할 해시태그 ID 배열 추출
 
   try {
     // 유저 조회
@@ -292,7 +296,7 @@ exports.userHashtagDelete = async (req, res) => {
     const existingHashtagIds = user.Hashtags.map((tag) => tag.id);
 
     // 삭제할 해시태그 ID가 유저가 가진 해시태그에 포함되는지 검증
-    const validHashtagIds = hashtagIds.filter((id) => existingHashtagIds.includes(id));
+    const validHashtagIds = hashtags.filter((id) => existingHashtagIds.includes(id));
 
     if (validHashtagIds.length === 0) {
       return res.status(400).json({
@@ -307,10 +311,16 @@ exports.userHashtagDelete = async (req, res) => {
     });
 
     // 유저에서 해시태그 삭제
-    await user.removeHashtags(hashtagsToRemove);
+    await user.removeHashtags(hashtagsToRemove); // Many-to-Many 관계에서 해시태그 삭제
 
-    // 삭제된 해시태그 정보
-    const removedHashtags = hashtagsToRemove.map((tag) => ({
+    // 삭제 후 유저의 현재 해시태그 목록 조회
+    const updatedUser = await User.findOne({
+      where: { id: userId },
+      include: [{ model: Hashtag, through: { attributes: [] } }], // 업데이트된 해시태그 목록 포함
+    });
+
+    // 현재 해시태그 목록
+    const currentHashtags = updatedUser.Hashtags.map((tag) => ({
       id: tag.id,
       name: tag.name,
     }));
@@ -319,14 +329,14 @@ exports.userHashtagDelete = async (req, res) => {
     res.status(200).json({
       success: true,
       user: {
-        id: user.id,
-        email: user.email,
-        nick: user.nick,
+        id: updatedUser.id,
+        email: updatedUser.email,
+        nick: updatedUser.nick,
       },
-      removedHashtags,
+      currentHashtags, // 삭제가 반영된 현재 해시태그 목록
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error in userHashtagDelete:', error); // 상세한 에러 로그 출력
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 };

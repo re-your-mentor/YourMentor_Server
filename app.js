@@ -31,6 +31,7 @@ const commentRouter = require('./routes/comment');
 const chatRouter = require('./routes/chat');
 const passportConfig = require('./passport');
 const logger = require('./logger');
+const setupSockets = require('./sockets/chatSocket');
 
 const sessionOption = {
   resave: false,
@@ -46,10 +47,10 @@ const sessionOption = {
 const app = express();
 passportConfig();
 
-const io = app.use(cors({
-  origin: '*', // 모든 도메인 허용
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-}));
+// const io = app.use(cors({
+//   origin: '*', // 모든 도메인 허용
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+// }));
 app.set('port', process.env.PORT || 8000);
 app.set('host', process.env.HOST);
 app.set('view engine', 'html');
@@ -144,3 +145,6 @@ const server = app.listen(app.get('port'), () => {
 // const server = app.listen(app.get('port'),app.get('host'), () => {
 //   console.log(`Server running on port ${app.get('port')}`);
 // });
+
+const io = require('socket.io')(server);
+setupSockets(io);

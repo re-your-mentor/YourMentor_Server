@@ -52,7 +52,7 @@ router.delete('/withdraw', verifyToken, deleteUser);
 // POST /user/tag - 유저 관심테그 등록
 router.post('/tag', verifyToken, userHashtagAdd);
 
-// PUT /user/tag - 유저 테그 삭제
+// DELETE /user/tag - 유저 테그 삭제
 router.delete('/tag', verifyToken, userHashtagDelete);
 
 

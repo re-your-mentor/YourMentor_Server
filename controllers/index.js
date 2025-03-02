@@ -48,6 +48,7 @@ exports.renderMain = async (req, res) => {
     res.status(500).json({ message: 'Error fetching posts' });
   }
 };
+
 // 해시태그 검색 결과 반환
 exports.renderHashtag = async (req, res, next) => {
   const query = req.query.hashtag;

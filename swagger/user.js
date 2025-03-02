@@ -2,7 +2,7 @@
  * @swagger
  * /user/edit/nick:
  *   put:
- *     summary: 유저 닉네임 수정
+ *     summary: 유저 닉네임 수정 (토큰 필요)
  *     description: 유저의 닉네임을 수정합니다.
  *     tags: [user]
  *     security:
@@ -51,19 +51,19 @@
  *                 message:
  *                   type: string
  *                   example: Error updating user information
- *   securityDefinitions:
+ * components:
+ *   securitySchemes:
  *     bearerAuth:
- *     type: "apiKey"
- *     in: "header"
- *     name: "Authorization"
- *     description: "Bearer token을 통해 인증합니다."
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  */
 
 /**
  * @swagger
  * /user/edit/profile:
  *   put:
- *     summary: 유저 프로필 사진 수정
+ *     summary: 유저 프로필 사진 수정 (토큰 필요)
  *     description: 유저의 프로필 사진을 수정합니다.
  *     tags: [user]
  *     security:
@@ -109,12 +109,13 @@
  *                 message:
  *                   type: string
  *                   example: Error updating user information
- *   securityDefinitions:
+ * components:
+ *   securitySchemes:
  *     bearerAuth:
- *     type: "apiKey"
- *     in: "header"
- *     name: "Authorization"
- *     description: "Bearer token을 통해 인증합니다."
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *       description: "Bearer 토큰을 통해 인증합니다."
  */
 
 
@@ -260,7 +261,7 @@
  * @swagger
  * /user/withdraw:
  *   delete:
- *     summary: 유저 삭제
+ *     summary: 유저 삭제 (토큰 필요)
  *     description: 유저를 삭제 처리합니다 (db 상에서 데이터는 그대로 남음. soft delete)
  *     tags: [user]
  *     security:
@@ -304,7 +305,7 @@
  * @swagger
  * /user/tag:
  *   post:
- *     summary: 유저 테그 추가 (중복 걸러낼 수 있음.)
+ *     summary: 유저 테그 추가 (토큰 필요) (중복 걸러낼 수 있음.)
  *     description: 유저의 관심 테그를 추가합니다.
  *     tags: [user]
  *     security:
@@ -398,7 +399,7 @@
  * @swagger
  * /user/tag:
  *   delete:
- *     summary: 유저 테그 삭제 (중복 걸러낼 수 있음.)
+ *     summary: 유저 테그 삭제 (토큰 필요)
  *     description: 유저의 관심 테그를 삭제합니다.
  *     tags: [user]
  *     security:
@@ -410,9 +411,6 @@
  *           schema:
  *             type: object
  *             properties:
- *               userId:
- *                 type: integer
- *                 description: 유저 아이디
  *               hashtag:
  *                 type: array
  *                 description: 헤시테그의 숫자를 배열로 받습니다.
@@ -454,10 +452,6 @@
  *                         type: string
  *                         example: python
  *                   example:
- *                     - id: 2
- *                       name: python
- *                     - id: 3
- *                       name: java
  *                     - id: 4
  *                       name: typescript
  *       400:
@@ -490,10 +484,4 @@
  *                 message:
  *                   type: string
  *                   example: Error updating user information
- * securityDefinitions:
- *   bearerAuth:
- *     type: apiKey
- *     in: header
- *     name: Authorization
- *     description: Bearer token을 통해 인증합니다.
  */

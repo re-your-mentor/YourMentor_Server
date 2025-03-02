@@ -12,12 +12,13 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:8000", // 요청 URL
+        url: "http://3.148.49.139:8000", // 요청 URL
       },
     ],
   },
   apis: ["./routers/*.js", "./swagger/*"], //Swagger 파일 연동
 }
+
 const specs = swaggerJsdoc(options);
 
 module.exports = { swaggerUi, specs }
