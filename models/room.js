@@ -14,11 +14,7 @@ class Room extends Sequelize.Model {
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-      },
-      hasRoom: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
-      },
+      }
     }, {
       sequelize,
       timestamps: true,
@@ -32,9 +28,16 @@ class Room extends Sequelize.Model {
   }
 
   static associate(db) {
-    db.Room.belongsTo(db.User, { foreignKey: 'userId' }); // 한 방에는 하나의 유저가 생성자 역할
-    db.Room.hasMany(db.Message, { foreignKey: 'roomId' }); // 하나의 방에는 여러 메시지가 있을 수 있음
-    //db.Post.belongsToMany(db.Hashtag, { through: 'ChatroomHashtag', foreignKey: 'roomId' });
+    db.Room.belongsTo(db.User, { 
+      foreignKey: 'userId',
+      as: 'creator', // ✅ 추가된 부분
+    });
+    db.Room.hasMany(db.Message, { foreignKey: 'roomId' });
+    db.Room.belongsToMany(db.Hashtag, { 
+      through: 'ChatroomHashtag', // 중간 테이블 이름
+      foreignKey: 'roomId',       // Room을 참조하는 외래키
+      as: 'hashtags'             // 쿼리에서 사용할 alias
+    });
   }
 };
 

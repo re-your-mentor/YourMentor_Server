@@ -2,7 +2,6 @@
 const passport = require('passport');
 const local = require('./localStrategy');  // 로컬 로그인 전략
 const kakao = require('./kakaoStrategy');  // 카카오 로그인 전략
-const google = require('./googleStrategy'); // 구글 로그인 전략
 const User = require('../models/user');  // 사용자 모델 불러오기
 
 module.exports = () => {
@@ -29,5 +28,4 @@ module.exports = () => {
   // 로컬 로그인 전략과 카카오 로그인 전략을 불러와서 패스포트에 설정
   local();  // 로컬 전략을 사용한 로그인 설정
   kakao();  // 카카오 전략을 사용한 로그인 설정
-  google(); // 구글 전략을 사용한 로그인 설정
 };

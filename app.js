@@ -9,6 +9,7 @@ const passport = require('passport');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const cors = require('cors');
+const socketIo = require('socket.io');
 //const redis = require('redis');
 //const RedisStore = require('connect-redis').default;
 const { swaggerUi, specs } = require("./swagger/swagger");
@@ -54,10 +55,12 @@ passportConfig();
 app.set('port', process.env.PORT || 8000);
 app.set('host', process.env.HOST);
 app.set('view engine', 'html');
-nunjucks.configure('views', {
-  express: app,
-  watch: true,
-});
+app.use(cors());
+
+// nunjucks.configure('views', {
+//   express: app,
+//   watch: true,
+// });
 
 sequelize
   .sync({ force: false })
@@ -86,6 +89,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/img', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+const syncDatabase = async () => {
+  try {
+    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0'); // ✅ sequelize 객체 사용
+    await sequelize.sync({ force: true });
+    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+    console.log('Database synchronized successfully.');
+  } catch (error) {
+    console.error('Error syncing database:', error);
+  }
+};
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
 if (process.env.NODE_ENV === 'production') {
@@ -103,7 +116,7 @@ app.use('/auth', authRouter);
 app.use('/post', postRouter);
 app.use('/user', userRouter);
 app.use('/comment', commentRouter);
-//app.use('/chat', chatRouter);
+app.use('/chat', chatRouter);
 
 /**
  * 파라미터 변수 뜻
@@ -137,9 +150,47 @@ app.use((err, req, res, next) => {
 //swagger 테스트
 //console.log(JSON.stringify(specs, null, 2));
 
-const server = app.listen(app.get('port'), () => {
-  console.log(`Server running on port ${app.get('port')}`);
-});
+//syncDatabase().then(() => {
+  const server = app.listen(app.get('port'), () => {
+    console.log(`Server running on port ${app.get('port')}`);
+  });
+//});
+
+// const io = socketIo(server, {
+//   cors: {
+//     origin: "*"
+//   }
+// });
+
+// io.on('connection', (socket) => {
+//   console.log('New client connected');
+
+//   // 채팅방 입장
+//   socket.on('joinRoom', async (roomId) => {
+//     socket.join(roomId);
+//   });
+
+//   // 메시지 수신 및 저장
+//   socket.on('sendMessage', async ({ roomId, userId, content }) => {
+//     const message = await db.Message.create({
+//       content,
+//       UserId: userId,
+//       RoomId: roomId
+//     });
+
+//     // 사용자 정보 포함해 메시지 전송
+//     const user = await db.User.findByPk(userId);
+//     io.to(roomId).emit('receiveMessage', {
+//       ...message.toJSON(),
+//       User: user.toJSON()
+//     });
+//   });
+
+//   socket.on('disconnect', () => {
+//     console.log('Client disconnected');
+//   });
+// });
+
 
 // 미배포 환경에서 내부망 통신에 사용
 // const server = app.listen(app.get('port'),app.get('host'), () => {

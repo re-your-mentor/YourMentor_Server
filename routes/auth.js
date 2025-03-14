@@ -26,18 +26,4 @@ router.get('/kakao/callback', passport.authenticate('kakao', {
   res.redirect('/'); // 성공 시에는 /로 이동
 });
 
-//-----------------[ 구글 로그인 ]-----------------
-// GET /auth/google
-router.get('/google', passport.authenticate('google')); // 프로파일과 이메일 정보를 받는다.
-
-// GET /auth/google/callback
-router.get('/google/callback', passport.authenticate('google', { 
-    failureRedirect: '/?error=구글로그인 실패'
-}),
-   (req, res) => {
-      res.redirect('/'); // 성공 시에는 /로 이동
-   },
-);
-
-
 module.exports = router;

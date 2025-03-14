@@ -47,10 +47,7 @@ class Comment extends Sequelize.Model {
   }
 
   static associate(db) {
-    // 댓글과 게시글(Post)의 관계: 댓글은 하나의 게시글에 속함
     db.Comment.belongsTo(db.Post, { foreignKey: 'postId', targetKey: 'id' });
-
-    // 댓글과 사용자(User)의 관계: 댓글은 하나의 사용자에 속함
     db.Comment.belongsTo(db.User, { foreignKey: 'userId', targetKey: 'id' });
 
     // 댓글과 대댓글의 자기 참조 관계

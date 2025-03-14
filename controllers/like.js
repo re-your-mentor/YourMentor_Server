@@ -23,7 +23,7 @@ exports.addPostLike = async (req, res) => {
     await Like.create({ postId, userId });
 
     // 게시글의 좋아요 수 증가
-    await Post.increment('likeCount', { where: { id: postId } });
+    //await Post.increment('likeCount', { where: { id: postId } });
 
     res.status(201).json({ message: '좋아요 추가됨' });
   } catch (error) {
@@ -51,7 +51,7 @@ exports.removePostLike = async (req, res) => {
     await like.destroy();
 
     // 게시글의 좋아요 수 감소
-    await Post.decrement('likeCount', { where: { id: postId } });
+    //await Post.decrement('likeCount', { where: { id: postId } });
 
     res.status(200).json({ message: '좋아요 삭제됨' });
   } catch (error) {

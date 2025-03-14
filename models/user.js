@@ -9,7 +9,7 @@ class User extends Sequelize.Model {
         unique: true,
       },
       nick: {
-        type: Sequelize.STRING(30),
+        type: Sequelize.STRING(50),
         allowNull: false,
       },
       password: {
@@ -17,7 +17,7 @@ class User extends Sequelize.Model {
         allowNull: true,
       },
       profile_pic: {
-        type: Sequelize.STRING(500),
+        type: Sequelize.STRING(100),
         defaultValue: "default_profile_pic.jpg"
       },
       hasRoom: {
@@ -25,7 +25,7 @@ class User extends Sequelize.Model {
         defaultValue: false
       },
       provider: {
-        type: Sequelize.ENUM('local', 'kakao', 'google'),
+        type: Sequelize.ENUM('local', 'kakao'),
         allowNull: false,
         defaultValue: 'local',
       },
@@ -48,10 +48,21 @@ class User extends Sequelize.Model {
   static associate(db) {
     db.User.hasMany(db.Comment, { foreignKey: 'userId' });
     db.User.hasMany(db.Message, { foreignKey: 'userId' });
-    db.User.hasMany(db.Room, { foreignKey: 'userId' });
+    db.User.hasMany(db.Room, { 
+      foreignKey: 'userId',
+      as: 'createdRooms', // ✅ 추가된 부분
+    });
     db.User.hasMany(db.Post, { foreignKey: 'userId' });
-    db.User.belongsToMany(db.Hashtag, { through: 'UserHashtag', foreignKey: 'userId' });
-    db.User.hasMany(db.Like, { foreignKey: 'userId', sourceKey: 'id', onDelete: 'CASCADE' });
+    db.User.belongsToMany(db.Hashtag, {
+      through: 'UserHashtag', // 중간 테이블
+      foreignKey: 'userId',   // User를 참조하는 외래키
+      as: 'Hashtags'          // ✅ alias를 'Hashtags'로 설정 (대문자 주의)
+    });
+    db.User.hasMany(db.Like, { 
+      foreignKey: 'userId', 
+      sourceKey: 'id', 
+      onDelete: 'CASCADE' 
+    });
   }
 };
 

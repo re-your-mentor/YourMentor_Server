@@ -64,12 +64,14 @@ exports.getPostWithComments = async (req, res, next) => {
       include: [
         { model: User, attributes: ['id', 'nick', 'profile_pic'] },
         {
-          model: Comment, include:
-            [{ model: User, attributes: ['id', 'nick'] }], required: false
+          model: Comment,
+          include: [{ model: User, attributes: ['id', 'nick'] }],
+          required: false,
         },
         {
-          model: Hashtag, attributes: ['id', 'name'],
-          through: { attributes: [] }
+          model: Hashtag,
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
         }, // 해시태그 정보 포함
       ],
     });
@@ -81,6 +83,11 @@ exports.getPostWithComments = async (req, res, next) => {
       });
     }
 
+    // 좋아요 수 조회
+    const likeCount = await Like.count({
+      where: { postId: id }, // 해당 게시글의 좋아요 수를 세기 위해 postId를 조건으로 사용
+    });
+
     return res.status(200).json({
       success: true,
       post: {
@@ -89,6 +96,7 @@ exports.getPostWithComments = async (req, res, next) => {
         title: post.title,
         content: post.content,
         img: post.img,
+        likeCount, // 좋아요 수 추가
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         user: {
@@ -96,11 +104,12 @@ exports.getPostWithComments = async (req, res, next) => {
           nick: post.User.nick,
           img: post.User.profile_pic,
         },
-        hashtags: post.Hashtags.map(hashtag => ({ // 해시태그 정보 추가
+        hashtags: post.Hashtags.map((hashtag) => ({
+          // 해시태그 정보 추가
           id: hashtag.id,
           name: hashtag.name,
         })),
-        comments: post.Comments.map(comment => ({
+        comments: post.Comments.map((comment) => ({
           id: comment.id,
           reply_to: comment.reply_to,
           comment_nick: comment.post_nick,

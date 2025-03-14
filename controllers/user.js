@@ -277,7 +277,7 @@ exports.userHashtagAdd = async (req, res) => {
   }
 };
 
-
+// 유저 해시테그 삭제
 exports.userHashtagDelete = async (req, res) => {
   const userId = req.user.id; // 요청에서 userId 추출
   const { hashtags } = req.body; // 요청 본문에서 삭제할 해시태그 ID 배열 추출
@@ -291,6 +291,24 @@ exports.userHashtagDelete = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ success: false, message: '유저를 찾을 수 없습니다.' });
+    }
+
+    // 빈 배열인 경우, 기존 해시태그를 유지하고 응답 반환
+    if (!hashtags || hashtags.length === 0) {
+      const currentHashtags = user.Hashtags.map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          nick: user.nick,
+        },
+        currentHashtags, // 기존 해시태그 목록
+      });
     }
 
     // 유저가 가진 해시태그 ID 추출
@@ -320,12 +338,6 @@ exports.userHashtagDelete = async (req, res) => {
       include: [{ model: Hashtag, through: { attributes: [] } }], // 업데이트된 해시태그 목록 포함
     });
 
-    // 현재 해시태그 목록
-    const currentHashtags = updatedUser.Hashtags.map((tag) => ({
-      id: tag.id,
-      name: tag.name,
-    }));
-
     // 성공 응답
     res.status(200).json({
       success: true,
@@ -334,11 +346,13 @@ exports.userHashtagDelete = async (req, res) => {
         email: updatedUser.email,
         nick: updatedUser.nick,
       },
-      currentHashtags, // 삭제가 반영된 현재 해시태그 목록
+      currentHashtags: updatedUser.Hashtags.map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+      })), // 삭제가 반영된 현재 해시태그 목록
     });
   } catch (error) {
     console.error('Error in userHashtagDelete:', error); // 상세한 에러 로그 출력
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 };
-
