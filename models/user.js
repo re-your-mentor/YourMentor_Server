@@ -48,9 +48,10 @@ class User extends Sequelize.Model {
   static associate(db) {
     db.User.hasMany(db.Comment, { foreignKey: 'userId' });
     db.User.hasMany(db.Message, { foreignKey: 'userId' });
-    db.User.hasMany(db.Room, { 
-      foreignKey: 'userId',
-      as: 'createdRooms', // ✅ 추가된 부분
+    db.User.belongsToMany(db.Room, {
+      through: 'RoomUsers',
+      as: 'joinedRooms', // 소문자로 통일 (권장)
+      foreignKey: 'userId'
     });
     db.User.hasMany(db.Post, { foreignKey: 'userId' });
     db.User.belongsToMany(db.Hashtag, {

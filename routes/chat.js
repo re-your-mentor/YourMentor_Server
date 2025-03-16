@@ -20,9 +20,8 @@ router.put('/rooms/:id', verifyToken, editChatRoom);
 // DELETE chat/rooms
 router.delete('/rooms/:id', verifyToken, deleteChatRoom);
 
-
-// POST
-router.post('/rooms/:id/join', verifyToken, joinChatRoom);
+// 
+router.post('/rooms/:roomId/join', verifyToken, joinChatRoom); // 경로 수정
    
 
 

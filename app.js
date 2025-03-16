@@ -10,9 +10,11 @@ const helmet = require('helmet');
 const hpp = require('hpp');
 const cors = require('cors');
 const socketIo = require('socket.io');
+const setupChatSocket = require('./socketHandlers/chatHandler');
 //const redis = require('redis');
 //const RedisStore = require('connect-redis').default;
 const { swaggerUi, specs } = require("./swagger/swagger");
+
 
 dotenv.config();
 
@@ -32,7 +34,7 @@ const commentRouter = require('./routes/comment');
 const chatRouter = require('./routes/chat');
 const passportConfig = require('./passport');
 const logger = require('./logger');
-const setupSockets = require('./sockets/chatSocket');
+
 
 const sessionOption = {
   resave: false,
@@ -156,40 +158,15 @@ app.use((err, req, res, next) => {
   });
 //});
 
-// const io = socketIo(server, {
-//   cors: {
-//     origin: "*"
-//   }
-// });
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+},
+path: "/chat"
+});
 
-// io.on('connection', (socket) => {
-//   console.log('New client connected');
-
-//   // 채팅방 입장
-//   socket.on('joinRoom', async (roomId) => {
-//     socket.join(roomId);
-//   });
-
-//   // 메시지 수신 및 저장
-//   socket.on('sendMessage', async ({ roomId, userId, content }) => {
-//     const message = await db.Message.create({
-//       content,
-//       UserId: userId,
-//       RoomId: roomId
-//     });
-
-//     // 사용자 정보 포함해 메시지 전송
-//     const user = await db.User.findByPk(userId);
-//     io.to(roomId).emit('receiveMessage', {
-//       ...message.toJSON(),
-//       User: user.toJSON()
-//     });
-//   });
-
-//   socket.on('disconnect', () => {
-//     console.log('Client disconnected');
-//   });
-// });
+setupChatSocket(io);
 
 
 // 미배포 환경에서 내부망 통신에 사용

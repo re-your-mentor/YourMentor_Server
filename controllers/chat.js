@@ -272,6 +272,14 @@ exports.deleteChatRoom = async (req, res) => {
     // Room 삭제 시 연관된 데이터도 자동으로 삭제되도록 설정
     await room.destroy({ transaction });
 
+    // hasRoom 필드 0으로 업데이트하기
+    await User.update({
+      hasRoom: 0
+    }, {
+      where: { id: req.user.id },
+      transaction
+    });
+
     await transaction.commit();
     res.json({ success: true, message: '채팅방이 성공적으로 삭제되었습니다.' });
   } catch (error) {
@@ -281,20 +289,57 @@ exports.deleteChatRoom = async (req, res) => {
   }
 };
 
-
 exports.joinChatRoom = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const roomId = req.params.roomId;
+    const userId = req.user.id;
 
-    const room = await Room.findByPk(userId);
-    if (!room) return res.status(404).json({ error: 'Room not found' });
+    // 1. 채팅방 조회 (소문자 'members'로 수정)
+    const room = await Room.findByPk(roomId, {
+      include: [
+        { 
+          model: User, 
+          as: 'members', // ✅ 모델 정의와 일치 (소문자)
+          attributes: ['id', 'nick'] 
+        },
+        { 
+          model: User, 
+          as: 'creator',
+          attributes: ['id', 'nick'] 
+        }
+      ]
+    });
 
-    if (room.userId == userId)
-      return res.status({ error: 'creator is same as person who wants to join ' });
+    if (!room) {
+      return res.status(404).json({ error: '채팅방을 찾을 수 없습니다' });
+    }
 
-    // 여기에 참여 로직 추가 (예: 참여자 목록 관리)
-    res.json({ message: 'Joined room successfully' });
+    // 2. 사용자 확인
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
+    }
+
+    // 3. 참여 여부 확인 (소문자 'members'로 수정)
+    const isMember = room.members.some(member => member.id === userId);
+    if (isMember) {
+      return res.status(400).json({ error: "이미 참여 중입니다" });
+    }
+
+    // 4. 참여자 추가 (addMembers로 수정)
+    await room.addMembers(user); // ✅ 복수형 메서드 사용
+
+    // 5. 성공 응답
+    res.json({
+      success: true,
+      roomId: room.id,
+      title: room.name, // 모델 필드명 확인 (name vs title)
+      socketEvent: 'joinRoom',
+      message: '채팅방 참여 성공. 소켓 연결을 진행해주세요.',
+      members: room.members
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
+};
