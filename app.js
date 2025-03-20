@@ -50,10 +50,6 @@ const sessionOption = {
 const app = express();
 passportConfig();
 
-// const io = app.use(cors({
-//   origin: '*', // 모든 도메인 허용
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-// }));
 app.set('port', process.env.PORT || 8000);
 app.set('host', process.env.HOST);
 app.set('view engine', 'html');
@@ -133,10 +129,14 @@ app.use('/chat', chatRouter);
 
 // 404 에러 핸들링
 app.use((req, res, next) => {
-  const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
-  error.status = 404;
-  logger.error(error.message);
-  next(error);
+  // Socket.IO 경로는 무시
+  if (req.url.startsWith('/chats') || req.url.startsWith('/socket.io')) {
+    return next();
+  }
+  
+  const err = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
+  err.status = 404;
+  next(err);
 });
 
 // 500 에러 핸들링
@@ -152,27 +152,44 @@ app.use((err, req, res, next) => {
 //swagger 테스트
 //console.log(JSON.stringify(specs, null, 2));
 
-//syncDatabase().then(() => {
+// syncDatabase().then(() => {
   const server = app.listen(app.get('port'), () => {
     console.log(`Server running on port ${app.get('port')}`);
   });
-//});
+// });
 
 const io = socketIo(server, {
+  pingTimeout: 60000,
+  pingInterval: 25000,
   cors: {
     origin: "*",
-    methods: ["GET", "POST"]
-},
-path: "/chat"
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  path: "/socket.io", // 기본 경로로 변경
 });
 
-setupChatSocket(io);
+// 네임스페이스 생성
+const chatNamespace = io.of('/chats'); 
+
+// chatHandler에 네임스페이스 전달
+require('./socketHandlers/chatHandler')(chatNamespace);
+
+// 404 에러 핸들러는 Socket.IO 경로를 제외하도록 수정
+app.use((req, res, next) => {
+  // Socket.IO 경로는 건너뛰기
+  if (req.url.startsWith('/chats')) {
+    return next();
+  }
+  
+  // 그 외 경로에 대한 404 처리
+  const err = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
+  err.status = 404;
+  next(err);
+});
 
 
 // 미배포 환경에서 내부망 통신에 사용
 // const server = app.listen(app.get('port'),app.get('host'), () => {
 //   console.log(`Server running on port ${app.get('port')}`);
 // });
-
-// const io = require('socket.io')(server);
-// setupSockets(io);

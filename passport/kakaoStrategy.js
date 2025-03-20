@@ -8,6 +8,7 @@ module.exports = () => {
   // passport.use는 카카오 전략을 사용하여 카카오 로그인을 처리하도록 설정합니다.
   passport.use(new KakaoStrategy({
     clientID: process.env.KAKAO_CLIENT_ID,  // 카카오 개발자 사이트에서 발급받은 애플리케이션 ID (KAKAO_ID 환경변수)
+    clientSecret: process.env.KAKAO_CLIENT_SECRET,
     callbackURL: '/auth/kakao/callback',  // 카카오 인증 후 리다이렉트될 URL
   }, async (accessToken, refreshToken, profile, done) => {
     // 카카오 로그인 인증 후 실행될 콜백 함수입니다.

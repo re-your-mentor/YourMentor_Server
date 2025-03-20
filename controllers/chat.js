@@ -13,7 +13,7 @@ exports.makeChatRoom = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findByPk(userId);
 
-    if (user.hasRoom) {
+    if (user.hasRoom === true || user.hasRoom === 1) {
       return res.status(400).json({ error: 'You already have a room' });
     }
 
@@ -193,20 +193,25 @@ exports.editChatRoom = async (req, res) => {
       description: req.body.description || room.description
     }, { transaction });
 
-    // 4. 해시태그 업데이트
-    if (req.body.hashtags && Array.isArray(req.body.hashtags)) {
-      // 기존 해시태그 관계 제거
-      await room.setHashtags([], { transaction });
-
-      // 새로운 해시태그 관계 설정
+    // 4. 해시태그 업데이트 - 수정된 부분
+    // req.body.hashtag 또는 req.body.hashtags 중 하나를 사용
+    const hashtagIds = req.body.hashtag || req.body.hashtags;
+    
+    if (hashtagIds && Array.isArray(hashtagIds)) {
+      // 숫자로 변환
+      const numericIds = hashtagIds.map(Number);
+      console.log('해시태그 ID:', numericIds);
+      
+      // 해시태그 찾기
       const hashtags = await Hashtag.findAll({
-        where: { id: req.body.hashtags },
-        transaction // 트랜잭션 적용
+        where: { id: numericIds },
+        transaction
       });
-
-      if (hashtags.length > 0) {
-        await room.setHashtags(hashtags, { transaction });
-      }
+      
+      console.log(`찾은 해시태그: ${hashtags.length}개`);
+      
+      // 한 번에 관계 설정 (기존 관계는 자동으로 제거됨)
+      await room.setHashtags(hashtags, { transaction });
     }
 
     // 5. 업데이트된 방 정보 반환 (해시태그 포함)
@@ -235,6 +240,7 @@ exports.editChatRoom = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 exports.deleteChatRoom = async (req, res) => {
   const transaction = await sequelize.transaction();
@@ -290,16 +296,17 @@ exports.deleteChatRoom = async (req, res) => {
 };
 
 exports.joinChatRoom = async (req, res) => {
+  const t = await sequelize.transaction(); // 트랜잭션 시작
   try {
     const roomId = req.params.roomId;
     const userId = req.user.id;
 
-    // 1. 채팅방 조회 (소문자 'members'로 수정)
+    // 1. 채팅방 조회
     const room = await Room.findByPk(roomId, {
       include: [
         { 
           model: User, 
-          as: 'members', // ✅ 모델 정의와 일치 (소문자)
+          as: 'members',
           attributes: ['id', 'nick'] 
         },
         { 
@@ -307,39 +314,45 @@ exports.joinChatRoom = async (req, res) => {
           as: 'creator',
           attributes: ['id', 'nick'] 
         }
-      ]
+      ],
+      transaction: t // 트랜잭션 적용
     });
 
     if (!room) {
+      await t.rollback();
       return res.status(404).json({ error: '채팅방을 찾을 수 없습니다' });
     }
 
     // 2. 사용자 확인
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId, { transaction: t });
     if (!user) {
+      await t.rollback();
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
     }
 
-    // 3. 참여 여부 확인 (소문자 'members'로 수정)
+    // 3. 참여 여부 확인
     const isMember = room.members.some(member => member.id === userId);
     if (isMember) {
+      await t.rollback();
       return res.status(400).json({ error: "이미 참여 중입니다" });
     }
 
-    // 4. 참여자 추가 (addMembers로 수정)
-    await room.addMembers(user); // ✅ 복수형 메서드 사용
+    // 4. 참여자 추가
+    await room.addMembers(user, { transaction: t });
 
     // 5. 성공 응답
+    await t.commit(); // 트랜잭션 커밋
     res.json({
       success: true,
       roomId: room.id,
-      title: room.name, // 모델 필드명 확인 (name vs title)
+      title: room.name,
       socketEvent: 'joinRoom',
       message: '채팅방 참여 성공. 소켓 연결을 진행해주세요.',
       members: room.members
     });
 
   } catch (error) {
+    await t.rollback(); // 에러 발생 시 롤백
     res.status(500).json({ error: error.message });
   }
 };

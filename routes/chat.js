@@ -20,9 +20,7 @@ router.put('/rooms/:id', verifyToken, editChatRoom);
 // DELETE chat/rooms
 router.delete('/rooms/:id', verifyToken, deleteChatRoom);
 
-// 
+// POST chat/rooms/:roomId/join
 router.post('/rooms/:roomId/join', verifyToken, joinChatRoom); // 경로 수정
-   
-
 
 module.exports = router;
