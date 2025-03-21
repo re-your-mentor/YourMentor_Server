@@ -26,7 +26,7 @@ const upload = multer({
 router.post('/upload/img', verifyToken, upload.single('img'), processImage, afterUploadImage);
 
 // GET 
-router.get('/home', renderMain);
+router.get('/', renderMain);
 
 // GET /hashtag
 router.get('/hashtag', renderHashtag);
