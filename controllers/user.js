@@ -108,8 +108,8 @@ exports.getUserInfo = async (req, res) => {
       attributes: { exclude: ['password'] },
       include: [{
         model: Hashtag,
-        as: 'Hashtags', // 사용자가 선택한 해시태그 (관계 설정 필요)
-        through: { attributes: [] }, // 연결 테이블 필드 제외
+        as: 'hashtags',
+        through: { attributes: [] },
         attributes: ['id', 'name']
       }]
     });
@@ -118,12 +118,17 @@ exports.getUserInfo = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // 유저가 작성한 게시글 조회 (해시태그 포함)
-    const { count, rows: posts } = await Post.findAndCountAll({
+    // 1. 먼저 전체 개수 조회 (간단한 쿼리)
+    const totalCount = await Post.count({
+      where: { userId }
+    });
+
+    // 2. 페이지 데이터 조회
+    const posts = await Post.findAll({
       where: { userId },
       include: [{
         model: Hashtag,
-        through: { attributes: [] }, // 연결 테이블 필드 제외
+        through: { attributes: [] },
         attributes: ['id', 'name']
       }],
       attributes: {
@@ -133,8 +138,8 @@ exports.getUserInfo = async (req, res) => {
       },
       order,
       limit: parsedPageSize,
-      offset: offset,
-      subQuery: false
+      offset: offset
+      // subQuery: false 제거
     });
 
     // 응답 데이터 포맷
@@ -144,11 +149,11 @@ exports.getUserInfo = async (req, res) => {
       nick: user.nick,
       email: user.email,
       createdAt: user.createdAt,
-      hashtags: user.Hashtags.map(tag => ({ // 사용자 해시태그
+      hashtags: user.hashtags.map(tag => ({
         id: tag.id,
         name: tag.name
       })),
-      posts: posts.map(post => ({ // 게시글 목록
+      posts: posts.map(post => ({
         id: post.id,
         title: post.title,
         content: post.content,
@@ -159,17 +164,21 @@ exports.getUserInfo = async (req, res) => {
         createdAt: post.createdAt
       })),
       pagination: {
-        totalItems: count,
-        totalPages: Math.ceil(count / parsedPageSize),
+        totalItems: totalCount, // 별도로 조회한 정확한 총 개수 사용
+        totalPages: Math.ceil(totalCount / parsedPageSize),
         currentPage: parsedPage,
-        pageSize: parsedPageSize
+        pageSize: parsedPageSize,
+        currentItems: posts.length // 현재 페이지의 실제 아이템 수
       }
     };
 
     res.status(200).json(responseData);
   } catch (error) {
     console.error('Error getting user info:', error);
-    res.status(500).json({ message: 'Error getting user information', error });
+    res.status(500).json({ 
+      message: 'Error getting user information', 
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -213,80 +222,99 @@ exports.deleteUser = async (req, res) => {
 };
 
 // 헤시테그 추가
+// 유저 해시태그 추가
 exports.userHashtagAdd = async (req, res) => {
   const userId = req.user.id;
   const { hashtags } = req.body;
 
+  // 입력 검증
+  if (!hashtags || !Array.isArray(hashtags)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: '유효한 해시태그 ID 배열이 필요합니다.' 
+    });
+  }
+
   try {
-    // 유저 조회
-    const user = await User.findOne({
-      where: { id: userId },
-      include: [{ model: Hashtag, through: { attributes: [] } }],
+    const user = await User.findByPk(userId, {
+      include: [{
+        model: Hashtag,
+        as: 'hashtags',
+        through: { attributes: [] },
+        required: false
+      }]
     });
 
     if (!user) {
       return res.status(404).json({ success: false, message: '유저를 찾을 수 없습니다.' });
     }
 
-    // 유저가 이미 가진 해시태그 ID 추출
-    const existingHashtagIds = user.Hashtags.map((hashtag) => hashtag.id);
-    console.log('Existing Hashtags:', existingHashtagIds);
+    // 해시태그 데이터 확인
+    if (!user.hashtags) {
+      user.hashtags = []; // 기본값 설정
+    }
 
-    // 중복되지 않은 새로운 해시태그 ID 필터링
-    const newHashtagIds = hashtags.filter((id) => !existingHashtagIds.includes(id));
-    console.log('New Hashtags to add:', newHashtagIds);
+    // 기존 해시태그 ID 추출
+    const existingHashtagIds = user.hashtags.map(tag => tag.id);
+    
+    // 신규 해시태그 필터링
+    const newHashtagIds = hashtags.filter(id => 
+      !existingHashtagIds.includes(id) && Number.isInteger(id)
+    );
 
-    // 유저가 가진 해시태그 수 + 새로운 해시태그 수가 5개를 초과하는지 검증
+    // 최대 5개 제한 검증
     if (existingHashtagIds.length + newHashtagIds.length > 5) {
       return res.status(400).json({
         success: false,
         message: '해시태그는 최대 5개까지 추가할 수 있습니다.',
+        currentCount: existingHashtagIds.length
       });
     }
 
-    // 새로운 해시태그 조회
-    const hashtagsToAdd = await Hashtag.findAll({
-      where: { id: newHashtagIds },
-    });
-
-    console.log('Hashtags found to add:', hashtagsToAdd);
-
-    // 유저에 해시태그 추가
-    if (hashtagsToAdd.length > 0) {
-      await user.addHashtags(hashtagsToAdd);
+    // 해시태그 추가
+    if (newHashtagIds.length > 0) {
+      const tagsToAdd = await Hashtag.findAll({
+        where: { id: newHashtagIds }
+      });
+      await user.addHashtags(tagsToAdd);
     }
 
-    // 추가된 해시태그 정보
-    const addedHashtags = hashtagsToAdd.map((tag) => ({
-      id: tag.id,
-      name: tag.name,
-    }));
-
+    // 성공 응답
     res.status(200).json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        nick: user.nick,
-      },
-      addedHashtags,
+      addedCount: newHashtagIds.length,
+      currentTotal: existingHashtagIds.length + newHashtagIds.length
     });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    console.error('Error in userHashtagAdd:', {
+      error: error.message,
+      stack: error.stack,
+      userId,
+      hashtags
+    });
+    
+    res.status(500).json({ 
+      success: false, 
+      message: '서버 오류가 발생했습니다.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
-
 // 유저 해시테그 삭제
 exports.userHashtagDelete = async (req, res) => {
-  const userId = req.user.id; // 요청에서 userId 추출
-  const { hashtags } = req.body; // 요청 본문에서 삭제할 해시태그 ID 배열 추출
+  const userId = req.user.id;
+  const { hashtags } = req.body;
 
   try {
-    // 유저 조회
+    // 유저 조회 - as 별칭 추가
     const user = await User.findOne({
       where: { id: userId },
-      include: [{ model: Hashtag, through: { attributes: [] } }], // 유저가 가진 해시태그 정보 포함
+      include: [{ 
+        model: Hashtag, 
+        as: 'hashtags', // 모델 정의와 동일한 소문자 사용
+        through: { attributes: [] } 
+      }],
     });
 
     if (!user) {
@@ -307,7 +335,7 @@ exports.userHashtagDelete = async (req, res) => {
           email: user.email,
           nick: user.nick,
         },
-        currentHashtags, // 기존 해시태그 목록
+        currentHashtags,
       });
     }
 
@@ -330,12 +358,16 @@ exports.userHashtagDelete = async (req, res) => {
     });
 
     // 유저에서 해시태그 삭제
-    await user.removeHashtags(hashtagsToRemove); // Many-to-Many 관계에서 해시태그 삭제
+    await user.removeHashtags(hashtagsToRemove);
 
-    // 삭제 후 유저의 현재 해시태그 목록 조회
+    // 삭제 후 유저의 현재 해시태그 목록 조회 (as 별칭 추가)
     const updatedUser = await User.findOne({
       where: { id: userId },
-      include: [{ model: Hashtag, through: { attributes: [] } }], // 업데이트된 해시태그 목록 포함
+      include: [{ 
+        model: Hashtag, 
+        as: 'Hashtags',
+        through: { attributes: [] } 
+      }],
     });
 
     // 성공 응답
@@ -349,10 +381,10 @@ exports.userHashtagDelete = async (req, res) => {
       currentHashtags: updatedUser.Hashtags.map((tag) => ({
         id: tag.id,
         name: tag.name,
-      })), // 삭제가 반영된 현재 해시태그 목록
+      })),
     });
   } catch (error) {
-    console.error('Error in userHashtagDelete:', error); // 상세한 에러 로그 출력
+    console.error('Error in userHashtagDelete:', error);
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 };

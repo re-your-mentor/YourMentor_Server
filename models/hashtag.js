@@ -22,15 +22,21 @@ class Hashtag extends Sequelize.Model {
 
   static associate(db) {
     db.Hashtag.belongsToMany(db.User, {
-      through: 'UserHashtag', // 중간 테이블
-      foreignKey: 'hashtagId', // Hashtag를 참조하는 외래키
-      as: 'Users'              // ✅ alias를 'Users'로 설정 (대문자 주의)
+      through: 'UserHashtag',
+      foreignKey: 'hashtagId',
+      as: 'taggedUsers' // 더 명확한 이름 사용
     });
-    db.Hashtag.belongsToMany(db.Post, { through: 'PostHashtag', foreignKey: 'hashtagId' }); // 포스트와의 다대다 관계
+    
+    db.Hashtag.belongsToMany(db.Post, { 
+      through: 'PostHashtag', 
+      foreignKey: 'hashtagId',
+      as: 'posts'
+    });
+    
     db.Hashtag.belongsToMany(db.Room, {
-      through: 'ChatroomHashtag', // 동일한 중간 테이블
-      foreignKey: 'hashtagId',    // Hashtag를 참조하는 외래키
-      as: 'rooms'                 // 쿼리에서 사용할 alias (필요시)
+      through: 'ChatroomHashtag',
+      foreignKey: 'hashtagId',
+      as: 'rooms'
     });
   }
 };

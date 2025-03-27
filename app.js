@@ -153,10 +153,15 @@ app.use((err, req, res, next) => {
 //console.log(JSON.stringify(specs, null, 2));
 
 // syncDatabase().then(() => {
-  const server = app.listen(app.get('port'), () => {
-    console.log(`Server running on port ${app.get('port')}`);
-  });
+  // const server = app.listen(app.get('port'), () => {
+  //   console.log(`Server running on port ${app.get('port')}`);
+  // });
 // });
+
+// 미배포 환경에서 내부망 통신에 사용
+const server = app.listen(app.get('port'),app.get('host'), () => {
+  console.log(`Server running on port ${app.get('port')}`);
+});
 
 const io = socketIo(server, {
   pingTimeout: 60000,
@@ -187,9 +192,3 @@ app.use((req, res, next) => {
   err.status = 404;
   next(err);
 });
-
-
-// 미배포 환경에서 내부망 통신에 사용
-// const server = app.listen(app.get('port'),app.get('host'), () => {
-//   console.log(`Server running on port ${app.get('port')}`);
-// });

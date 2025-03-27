@@ -38,3 +38,31 @@ exports.processImage = async (req, res, next) => {
     return res.status(500).json({ error: '이미지 처리 실패' });
   }
 };
+
+exports.downloadAndProcessImage = async (imageUrl) => {
+  try {
+    if (!imageUrl) return null;
+
+    // 이미지 다운로드
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    
+    // 파일 정보 설정
+    const fileExt = path.extname(new URL(imageUrl).pathname) || '.jpg';
+    const randomName = crypto.randomBytes(10).toString('hex');
+    const fileName = `${randomName}${fileExt}`;
+    const filePath = path.join(__dirname, '..', 'uploads', fileName);
+    const publicPath = `/uploads/${fileName}`;
+
+    // 이미지 처리 및 저장
+    await sharp(response.data)
+      .rotate() // EXIF 데이터 기반 자동 회전
+      .resize({ width: 300, height: 300, fit: 'cover' }) // 프로필 이미지 크기 조정
+      .jpeg({ quality: 80 }) // JPEG 변환 (80% 품질)
+      .toFile(filePath);
+
+    return publicPath;
+  } catch (error) {
+    console.error('이미지 다운로드 및 처리 실패:', error);
+    return null;
+  }
+};

@@ -62,80 +62,95 @@ exports.makeChatRoom = async (req, res) => {
 exports.getAllChatRooms = async (req, res) => {
   try {
     const userId = req.user.id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const { page = 1, limit = 10, search = '' } = req.query;
     const offset = (page - 1) * limit;
 
-    // 1. 사용자의 해시태그 조회
-    const user = await User.findByPk(userId, {
+    // 1. 사용자 해시태그 조회 (삭제된 것 제외)
+    const user = await User.findOne({
+      where: { id: userId },
       include: [{
         model: Hashtag,
-        as: 'Hashtags',
+        as: 'hashtags',
         through: { attributes: [] }
       }]
     });
 
-    const userHashtagIds = user.Hashtags.map(hashtag => hashtag.id); // 사용자의 해시태그 ID 배열
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    // 2. 여러 검색어 분리 및 OR 조건 생성
-    const searchTerm = req.query.search || '';
-    const searchTerms = searchTerm.split(',').map(term => term.trim()); // 쉼표로 구분된 검색어를 배열로 분리
-    const hashtagCondition = searchTerms.length > 0
-      ? {
-        [Sequelize.Op.or]: searchTerms.map(term => ({
-          name: { [Sequelize.Op.like]: `%${term}%` }
-        }))
-      }
-      : {};
+    const userHashtagIds = user.hashtags.map(hashtag => hashtag.id);
 
-    // 3. 방 목록 조회
+    // 2. 검색 조건
+    const searchTerms = search.split(',').filter(Boolean).map(t => t.trim());
+    const hashtagWhere = searchTerms.length ? {
+      [Sequelize.Op.or]: searchTerms.map(term => ({
+        name: { [Sequelize.Op.like]: `%${term}%` }
+      }))
+    } : {};
+
+    // 3. 방 목록 조회 (중복 제거 및 삭제된 방 제외)
     const rooms = await Room.findAll({
+      distinct: true, // 중복 제거
       include: [
         {
           model: User,
           as: 'creator',
-          attributes: ['nick']
+          attributes: ['id', 'nick', 'profile_pic']
         },
         {
           model: Hashtag,
           as: 'hashtags',
-          where: hashtagCondition, // 해시태그 이름으로 필터링 (OR 조건)
+          where: hashtagWhere,
+          required: false,
           through: { attributes: [] }
         }
       ],
-      order: userHashtagIds.length > 0
-        ? [
-          [Sequelize.literal(`(
-              SELECT COUNT(*) 
-              FROM ChatroomHashtag 
-              WHERE ChatroomHashtag.roomId = Room.id 
-              AND ChatroomHashtag.hashtagId IN (${userHashtagIds.join(',')})
-            )`), 'DESC']
-        ]
-        : [['createdAt', 'DESC']], // 해시태그가 없는 경우, 생성일자 기준 정렬
-      limit: limit,
-      offset: offset
+      order: userHashtagIds.length > 0 ? [
+        [Sequelize.literal(`(
+          SELECT COUNT(*) 
+          FROM ChatroomHashtag 
+          WHERE ChatroomHashtag.roomId = Room.id 
+          AND ChatroomHashtag.hashtagId IN (${userHashtagIds.join(',')})
+        )`), 'DESC'],
+        ['createdAt', 'DESC']
+      ] : [['createdAt', 'DESC']],
+      limit: +limit,
+      offset: offset,
+      subQuery: false
     });
 
-    // 4. 총 방 수 조회
+    // 4. 총 방 수 조회 (별도로 수행)
     const totalRooms = await Room.count({
       include: [{
         model: Hashtag,
         as: 'hashtags',
-        where: hashtagCondition // 해시태그 이름으로 필터링 (OR 조건)
+        where: hashtagWhere,
+        required: false
       }]
     });
 
-    // 5. 응답 반환
+    // 5. 응답 데이터 구성
     res.json({
-      rooms,
+      rooms: rooms.map(room => ({
+        id: room.id,
+        name: room.name,
+        description: room.description,
+        creator: room.creator,
+        hashtags: room.hashtags,
+        createdAt: room.createdAt
+      })),
       totalRooms,
       totalPages: Math.ceil(totalRooms / limit),
-      currentPage: page
+      currentPage: +page
     });
+
   } catch (error) {
-    console.error('Error fetching rooms:', error); // 에러 로그
-    res.status(500).json({ error: error.message });
+    console.error('Error:', error);
+    res.status(500).json({ 
+      error: 'Server Error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

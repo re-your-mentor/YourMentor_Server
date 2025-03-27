@@ -381,6 +381,93 @@
 
 /**
  * @swagger
+ * /chat/rooms/{id}:
+ *   delete:
+ *     summary: 채팅방 정보 삭제
+ *     description: 채팅방을 삭제합니다. 방 생성자만 삭제할 수 있습니다.
+ *     tags: [Chat]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 삭제할 채팅방 ID
+ *     responses:
+ *       200:
+ *         description: 채팅방 삭제 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "채팅방이 성공적으로 삭제되었습니다."
+ *       400:
+ *         description: 잘못된 요청
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "방 ID가 제공되지 않았습니다."
+ *       403:
+ *         description: 권한 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "채팅방 삭제 권한이 없습니다."
+ *       404:
+ *         description: 채팅방을 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "삭제할 채팅방을 찾을 수 없습니다."
+ *       500:
+ *         description: 서버 에러
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error deleting chat room"
+ *     securityDefinitions:
+ *       BearerAuth:
+ *         type: "apiKey"
+ *         in: "header"
+ *         name: "Authorization"
+ *         description: "Bearer token을 통해 인증합니다."
+ */
+
+/**
+ * @swagger
  * /chat/rooms/{roomId}/join:
  *   post:
  *     summary: 채팅방 참여
